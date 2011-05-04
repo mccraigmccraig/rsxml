@@ -69,7 +69,7 @@ module Rsxml
       return fragment if !ns_prefixes
 
       ns_attrs = Hash[*ns_prefixes.map do |prefix,href|
-                        prefix = nil if prefix.length == 0
+                        prefix = nil if prefix.to_s.length == 0
                         [["xmlns", prefix].compact.join(":"), href]
                       end.flatten]
       xml = Builder::XmlMarkup.new

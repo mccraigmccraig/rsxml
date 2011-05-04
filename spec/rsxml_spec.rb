@@ -105,7 +105,7 @@ describe Rsxml do
       xml = Rsxml.to_xml(["foo:foofoo", {"foo:bar"=>"1", "foo:baz"=>"baz"}])
 
       org_with_ns = ["foo:foofoo", {"foo:bar"=>"1", "foo:baz"=>"baz", "xmlns"=>"http://baz.com/baz", "xmlns:foo"=>"http://foo.com/foo"}]
-      rsxml = Rsxml.to_rsxml(xml, {"foo"=>"http://foo.com/foo", ""=>"http://baz.com/baz"})
+      rsxml = Rsxml.to_rsxml(xml, {:foo=>"http://foo.com/foo", ""=>"http://baz.com/baz"})
 
       rsxml.should == org_with_ns
     end
