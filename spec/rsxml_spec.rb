@@ -111,4 +111,34 @@ describe Rsxml do
     end
 
   end
+
+  describe "compare" do
+    it "should return true when two simple docs are equivalent" do
+      Rsxml.compare(["Foo"], "<Foo></Foo").should == true
+    end
+
+    it "should return true when two simple docs with attributes are equivalent" do
+      Rsxml.compare([:foo, {:bar=>1, :baz=>"baz"}],
+                    [:foo, {:bar=>1, :baz=>"baz"}]).should == true
+    end
+
+    it "should return true when two more complex docs are equivalent" do
+      Rsxml.compare(["foo:foofoo", {"xmlns:foo"=>"http://foo.com/foo", "foo:bar"=>1, "foo:baz"=>"baz"}, ["Bar", "barbar"], ["Baz"]],
+                    ["foo:foofoo", {"xmlns:foo"=>"http://foo.com/foo", "foo:bar"=>1, "foo:baz"=>"baz"}, ["Bar", "barbar"], ["Baz"]]).should ==true
+    end
+
+    it "should raise an error when two simple docs differ" do
+      lambda {
+        Rsxml.compare(["Foo"], "<Boo></Boo").should == true
+      }.should raise_error("[]: element names differ: 'Foo', 'Boo'")
+    end
+
+    it "should raise an error when two more complex docs differ" do
+      lambda {
+        Rsxml.compare(["foo:foofoo", {"xmlns:foo"=>"http://foo.com/foo", "foo:bar"=>1, "foo:baz"=>"baz"}, ["Bar", "barbAr"], ["Baz"]],
+                      ["foo:foofoo", {"xmlns:foo"=>"http://foo.com/foo", "foo:bar"=>1, "foo:baz"=>"baz"}, ["Bar", "barbar"], ["Baz"]]).should ==true
+      }.should raise_error("[foo:foofoo/Bar]: content differs: 'barbAr', 'barbar'")
+
+    end
+  end
 end

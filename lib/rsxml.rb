@@ -4,7 +4,7 @@ require 'builder'
 module Rsxml
   module_function
 
-  # convert an s-expression representation of an XML document to XML
+  # convert an Rsxml s-expression representation of an XML document to XML
   #  Rsxml.to_xml(["Foo", {"foofoo"=>"10"}, ["Bar", "barbar"] ["Baz"]])
   #   => '<Foo foofoo="10"><Bar>barbar</Bar><Baz></Baz></Foo>' 
   def to_xml(rsxml)
@@ -13,7 +13,7 @@ module Rsxml
     xml.target!
   end
 
-  # convert an XML string to an s-expression representation
+  # convert an XML string to an Rsxml s-expression representation
   #  Rsxml.to_rsxml('<Foo foofoo="10"><Bar>barbar</Bar><Baz></Baz></Foo>')
   #   => ["Foo", {"foofoo"=>"10"}, ["Bar", "barbar"], ["Baz"]] 
   #
@@ -27,6 +27,14 @@ module Rsxml
     doc = Xml.wrap_fragment(doc, ns_prefixes)
     root = Xml.unwrap_fragment(Nokogiri::XML(doc).children.first)
     Xml.read_xml(root, [])
+  end
+
+  # compare two documents in XML or Rsxml. returns +true+ if they are identical, and
+  # if not raises +ComparisonError+ describing where they differ
+  def compare(xml_or_sexp_a, xml_or_sexp_b)
+    sexp_a = xml_or_sexp_a.is_a?(String) ? to_rsxml(xml_or_sexp_a) : xml_or_sexp_a
+    sexp_b = xml_or_sexp_b.is_a?(String) ? to_rsxml(xml_or_sexp_b) : xml_or_sexp_b
+    Sexp.compare(sexp_a, sexp_b)
   end
 
   module Sexp
@@ -57,6 +65,33 @@ module Rsxml
         children = sexp[1..-1]
       end
       [tag, attrs, children]
+    end
+
+    class ComparisonError < RuntimeError
+      attr_reader :path
+      def initialize(msg, path)
+        super("[#{path}]: #{msg}")
+        @path = path
+      end
+    end
+
+    def compare(sexpa, sexpb, path=nil)
+      taga, attrsa, childrena = decompose_sexp(sexpa)
+      tagb, attrsb, childrenb = decompose_sexp(sexpb)
+
+      raise ComparisonError.new("element names differ: '#{taga}', '#{tagb}'", path) if taga != tagb
+      raise ComparisonError.new("attributes differ", path) if attrsa != attrsb
+      raise ComparisonError.new("child cound differes", path) if childrena.length != childrenb.length
+
+      path = [path, taga].compact.join("/")
+      (0...childrena.length).each do |i|
+        if childrena[i].is_a?(Array) && childrenb[i].is_a?(Array)
+          compare(childrena[i], childrenb[i], path)
+        else
+          raise ComparisonError.new("content differs: '#{childrena[i]}', '#{childrenb[i]}'", path) if childrena[i] != childrenb[i]
+        end
+      end
+      true
     end
   end
 
