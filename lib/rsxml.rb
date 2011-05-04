@@ -5,8 +5,8 @@ module Rsxml
   module_function
 
   # convert an s-expression representation of an XML document to XML
-  #  Rsxml.to_xml(["Foo", {"foofoo"=>"10"}, ["Bar", "barbar"]]) =>
-  #    "<Foo foofoo=\"10\"><Bar>barbar</Bar></Foo>"
+  #  Rsxml.to_xml(["Foo", {"foofoo"=>"10"}, ["Bar", "barbar"] ["Baz"]])
+  #   => '<Foo foofoo="10"><Bar>barbar</Bar><Baz></Baz></Foo>' 
   def to_xml(rsxml)
     xml = Builder::XmlMarkup.new
     Sexp.write_xml(xml, rsxml)
@@ -14,8 +14,8 @@ module Rsxml
   end
 
   # convert an XML string to an s-expression representation
-  #  Rsxml.to_rsxml("<Foo foofoo=\"10\"><Bar>barbar</Bar></Foo>") =>
-  #    ["Foo", {"foofoo"=>"10"}, ["Bar", "barbar"]]
+  #  Rsxml.to_rsxml('<Foo foofoo="10"><Bar>barbar</Bar><Baz></Baz></Foo>')
+  #   => ["Foo", {"foofoo"=>"10"}, ["Bar", "barbar"], ["Baz"]] 
   def to_rsxml(doc)
     root = Nokogiri::XML(doc).children.first
     Xml.read_xml(root, [])

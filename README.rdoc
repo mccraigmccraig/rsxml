@@ -4,7 +4,7 @@ A Ruby library to translate XML documents into an s-expression representation, a
 
 Rsxml represents XML documents as s-expressions thus :
 
- ["Foo", {"foofoo"=>"10"}, ["Bar", "barbar"] ["Baz"]]
+ ["Foo", {"foofoo"=>"10"}, ["Bar", "barbar"], ["Baz"]]
 
 represents the XML document :
  <Foo foofoo="10"><Bar>barbar</Bar><Baz></Baz></Foo>
