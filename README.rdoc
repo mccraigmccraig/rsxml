@@ -1,6 +1,34 @@
 = rsxml
 
-Description goes here.
+A Ruby library to translate XML documents into an s-expression representation, and back again
+
+Rsxml represents XML documents as s-expressions thus :
+
+ ["Foo", {"foofoo"=>"10"}, ["Bar", "barbar"] ["Baz"]]
+
+represents the XML document :
+ <Foo foofoo="10"><Bar>barbar</Bar><Baz></Baz></Foo>
+
+It is easy to convert XML docuemnts to Rsxml representation and back again :
+
+ xml = Rsxml.to_xml(["Foo", {"foofoo"=>"10"}, ["Bar", "barbar"]])
+   => "<Foo foofoo=\"10\"><Bar>barbar</Bar></Foo>"
+
+ Rsxml.to_rsxml(xml)
+   => ["Foo", {"foofoo"=>"10"}, ["Bar", "barbar"]]
+
+If present, namespaces and namespace prefixes are retained :
+
+ xml = Rsxml.to_xml(["foo:foofoo", {"xmlns"=>"http://bar.com/bar", "xmlns:foo"=>"http://foo.com/foo", "foo:bar"=>1, "foo:baz"=>"baz"}])
+   => "<foo:foofoo foo:baz=\"baz\" foo:bar=\"1\" xmlns=\"http://bar.com/bar\" xmlns:foo=\"http://foo.com/foo\"></foo:foofoo>" 
+
+
+ Rsxml.to_rsxml(xml)
+   => ["foo:foofoo", {"foo:baz"=>"baz", "foo:bar"=>"1", "xmlns:foo"=>"http://foo.com/foo", "xmlns"=>"http://bar.com/bar"}]
+
+== Install
+
+ gem install rsxml
 
 == Contributing to rsxml
  
