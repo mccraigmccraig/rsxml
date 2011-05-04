@@ -16,8 +16,16 @@ module Rsxml
   # convert an XML string to an s-expression representation
   #  Rsxml.to_rsxml('<Foo foofoo="10"><Bar>barbar</Bar><Baz></Baz></Foo>')
   #   => ["Foo", {"foofoo"=>"10"}, ["Bar", "barbar"], ["Baz"]] 
-  def to_rsxml(doc)
-    root = Nokogiri::XML(doc).children.first
+  #
+  # if <tt>ns_prefixes</tt> is a Hash, then +doc+ is assumed to be a 
+  # fragment, and is wrapped in an element with namespace declarations
+  # according to +ns_prefixes+
+  #  fragment = '<foo:Foo foo:foofoo="10"><Bar>barbar</Bar><Baz></Baz></Foo>'
+  #  Rsxml.to_rsxml(fragment, {"foo"=>"http://foo.com/foo", ""=>"http://baz.com/baz"})
+  #   => ["foo:Foo", {"foo:foofoo"=>"10", "xmlns:foo"=>"http://foo.com/foo", "xmlns"=>"http://baz.com/baz"}, ["Bar", "barbar"], ["Baz"]]
+  def to_rsxml(doc, ns_prefixes=nil)
+    doc = Xml.wrap_fragment(doc, ns_prefixes)
+    root = Xml.unwrap_fragment(Nokogiri::XML(doc).children.first)
     Xml.read_xml(root, [])
   end
 
@@ -54,6 +62,30 @@ module Rsxml
 
   module Xml
     module_function
+
+    WRAP_ELEMENT = "RsxmlXmlWrapper"
+
+    def wrap_fragment(fragment, ns_prefixes)
+      return fragment if !ns_prefixes
+
+      ns_attrs = Hash[*ns_prefixes.map do |prefix,href|
+                        prefix = nil if prefix.length == 0
+                        [["xmlns", prefix].compact.join(":"), href]
+                      end.flatten]
+      xml = Builder::XmlMarkup.new
+      xml.__send__(WRAP_ELEMENT, ns_attrs) do
+        xml << fragment
+      end
+      xml.target!
+    end
+
+    def unwrap_fragment(node)
+      if node.name==WRAP_ELEMENT
+        node.children.first
+      else
+        node
+      end
+    end
 
     def read_xml(node, ns_stack)
       prefix = node.namespace.prefix if node.namespace
