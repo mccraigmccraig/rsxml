@@ -4,6 +4,13 @@ require 'builder'
 module Rsxml
   module_function
 
+  def check_opts(constraints, opts)
+    (opts||{}).each do |k,v|
+      raise "opt not permitted: #{k}" if !constraints.has_key?(k)
+      constraint = constraints[k]
+    end
+  end
+
   # convert an Rsxml s-expression representation of an XML document to XML
   #  Rsxml.to_xml(["Foo", {"foofoo"=>"10"}, ["Bar", "barbar"] ["Baz"]])
   #   => '<Foo foofoo="10"><Bar>barbar</Bar><Baz></Baz></Foo>' 
@@ -12,6 +19,8 @@ module Rsxml
     Sexp.write_xml(xml, rsxml, &transformer)
     xml.target!
   end
+
+  TO_RSXML_OPTS = {:ns=>nil}
 
   # convert an XML string to an Rsxml s-expression representation
   #  Rsxml.to_rsxml('<Foo foofoo="10"><Bar>barbar</Bar><Baz></Baz></Foo>')
@@ -23,8 +32,9 @@ module Rsxml
   #  fragment = '<foo:Foo foo:foofoo="10"><Bar>barbar</Bar><Baz></Baz></Foo>'
   #  Rsxml.to_rsxml(fragment, {"foo"=>"http://foo.com/foo", ""=>"http://baz.com/baz"})
   #   => ["foo:Foo", {"foo:foofoo"=>"10", "xmlns:foo"=>"http://foo.com/foo", "xmlns"=>"http://baz.com/baz"}, ["Bar", "barbar"], ["Baz"]]
-  def to_rsxml(doc, ns_prefixes=nil)
-    doc = Xml.wrap_fragment(doc, ns_prefixes)
+  def to_rsxml(doc, opts={})
+    check_opts(TO_RSXML_OPTS, opts)
+    doc = Xml.wrap_fragment(doc, opts[:ns])
     root = Xml.unwrap_fragment(Nokogiri::XML(doc).children.first)
     Xml.read_xml(root, [])
   end
