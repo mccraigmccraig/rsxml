@@ -50,25 +50,89 @@ module Rsxml
   module Sexp
     module_function
 
-    def write_xml(xml, sexp, path="", &transformer)
+    def write_xml(xml, sexp, ns_stack=[], path=[""], &transformer)
       tag, attrs, children = decompose_sexp(sexp)
       
       if transformer
-        txtag, txattrs = transformer.call(tag, attrs, path)
+        txtag, txattrs = transformer.call(tag, attrs, path.join("/"))
+        raise "transformer returned nil tag from \ntag: #{tag.inspect}\nattrs: #{attrs.inspect}>\npath: #{path.inspect}" if !txtag
       else
         txtag, txattrs = [tag, attrs]
       end
       
-      cp = [path, tag].join("/")
       xml.__send__(txtag, txattrs) do
         children.each_with_index do |child, i|
-          if child.is_a?(Array)
-            write_xml(xml, child, "#{cp}[#{i}]", &transformer)
-          else
-            xml << child
+          begin
+            path.push("#{tag}[#{i}]")
+            if child.is_a?(Array)
+              write_xml(xml, child, ns_stack, path, &transformer)
+            else
+              xml << child
+            end
+          ensure
+            path.pop
           end
         end
       end
+    end
+
+    # namespace qualify attrs
+    def qualify_attrs(ns_stack, attrs)
+      Hash[*attrs.map do |name,value|
+             [qualify_name(ns_stack, name), value]
+           end.flatten]
+    end
+
+    # namespace qualify a name: turns a LocalPart into a QName
+    def qualify_name(ns_stack, name)
+      local_part, prefix, uri = name
+
+      if prefix
+        ns = find_namespace(ns_stack, prefix)
+        raise "namespace prefix not bound to a namespace: #{name[1]}" if ! ns
+        "#{prefix}:#{local_part}"
+      else
+        local_part
+      end
+    end
+
+    # split a qname into [LocalPart, prefix and uri]
+    def unqualify_name(ns_stack, qname)
+      
+    end
+
+
+
+    NS_ATTR_P = /^xmlns(?:$|\:.+)/
+    NS_ATTR_PREFIX = /^xmlns:?(.*)/
+
+    # extract a Hash of {prefix=>uri} mappings declared in attributes
+    def extract_namespaces(attrs)
+      Hash[*attrs.map do |name,value|
+             if name =~ NS_ATTR_P
+               prefix = name[ NS_ATTR_PREFIX , 1]
+               [prefix, value]
+             end
+           end.compact.flatten]
+    end
+
+    # extract a Hash of {prefix=>uri} mappings
+    def extract_undeclared_namespaces(tag, attrs)
+      tag_local_part, tag_prefix, tag_uri = tag
+      ns = {}
+      ns[tag_prefix] = tag_uri if tag_prefix && tag_uri
+
+      attrs.each do |name, value|
+        next unless name =~ NS_ATTR_P
+        attr_local_part, attr_prefix, attr_uri = name
+        ns[attr_prefix] = attr_uri if attr_prefix && attr_uri
+      end
+    end
+
+    # returns the namespace uri for a prefix, if declared in the stack
+    def find_namespace(ns_stack, prefix)
+      tns = ns_stack.reverse.find{|ns| ns.has_key?(prefix)}
+      tns[prefix] if tns
     end
 
     def decompose_sexp(sexp)

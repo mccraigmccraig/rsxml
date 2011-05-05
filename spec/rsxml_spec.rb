@@ -79,7 +79,6 @@ describe Rsxml do
     it "should transform nested tags if a transformer is supplied" do
       txs = {"/foo"=>"Blub", "/foo[0]/bar"=>"Wub"}
       xml = Rsxml.to_xml([:foo, [:bar]]) do |tag,attrs,path| 
-        $stderr << [tag, attrs, path].inspect
         [txs[[path, tag].join("/")], attrs]
       end.should ==
         "<Blub><Wub></Wub></Blub>"
