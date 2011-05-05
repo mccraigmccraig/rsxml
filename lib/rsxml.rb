@@ -7,9 +7,9 @@ module Rsxml
   # convert an Rsxml s-expression representation of an XML document to XML
   #  Rsxml.to_xml(["Foo", {"foofoo"=>"10"}, ["Bar", "barbar"] ["Baz"]])
   #   => '<Foo foofoo="10"><Bar>barbar</Bar><Baz></Baz></Foo>' 
-  def to_xml(rsxml)
+  def to_xml(rsxml, &transformer)
     xml = Builder::XmlMarkup.new
-    Sexp.write_xml(xml, rsxml)
+    Sexp.write_xml(xml, rsxml, &transformer)
     xml.target!
   end
 
@@ -40,13 +40,20 @@ module Rsxml
   module Sexp
     module_function
 
-    def write_xml(xml, sexp)
+    def write_xml(xml, sexp, path="", &transformer)
       tag, attrs, children = decompose_sexp(sexp)
       
-      xml.__send__(tag, attrs) do
-        children.each do |child|
+      if transformer
+        txtag, txattrs = transformer.call(tag, attrs, path)
+      else
+        txtag, txattrs = [tag, attrs]
+      end
+      
+      cp = [path, tag].join("/")
+      xml.__send__(txtag, txattrs) do
+        children.each_with_index do |child, i|
           if child.is_a?(Array)
-            write_xml(xml, child)
+            write_xml(xml, child, "#{cp}[#{i}]", &transformer)
           else
             xml << child
           end
