@@ -83,22 +83,32 @@ module Rsxml
            end.flatten]
     end
 
-    # namespace qualify a name: turns a LocalPart into a QName
+    # produce a QName from a [LocalPart, prefix, URI] triple
     def qualify_name(ns_stack, name)
-      local_part, prefix, uri = name
+      return name if name.is_a?(String)
 
+      local_part, prefix, uri = name
       if prefix
         ns = find_namespace(ns_stack, prefix)
-        raise "namespace prefix not bound to a namespace: #{name[1]}" if ! ns
+        raise "namespace prefix not bound to a namespace: #{prefix}" if ! ns
         "#{prefix}:#{local_part}"
       else
         local_part
       end
     end
 
-    # split a qname into [LocalPart, prefix and uri]
+    # split a QName into [LocalPart, prefix and URI] triple
     def unqualify_name(ns_stack, qname)
-      
+      return qname if qname.is_a?(Array)
+
+      if qname =~ /^[^:]+:[^:]+$/
+        prefix, local_part = qname.split(':')
+        uri = find_namespace(ns_stack, prefix)
+        raise "namespace prefix not bound: #{prefix}" if ! uri
+        [local_part, prefix, uri]
+      else
+        [qname, nil, nil]
+      end
     end
 
 
@@ -108,12 +118,14 @@ module Rsxml
 
     # extract a Hash of {prefix=>uri} mappings declared in attributes
     def extract_namespaces(attrs)
-      Hash[*attrs.map do |name,value|
-             if name =~ NS_ATTR_P
-               prefix = name[ NS_ATTR_PREFIX , 1]
-               [prefix, value]
+      Hash[attrs.map do |name,value|
+             local_part, prefix, uri = unqualify_name(name)
+             if (prefix && prefix == "xmlns") || (!prefix && local_part == "xmlns")
+               [local_part, value]
+             elsif (!prefix && local_part == "xmlns")
+               ["", value]
              end
-           end.compact.flatten]
+           end.compact]
     end
 
     # extract a Hash of {prefix=>uri} mappings
