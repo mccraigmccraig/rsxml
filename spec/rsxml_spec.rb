@@ -80,6 +80,7 @@ describe Rsxml do
       txs = {"/foo"=>"Blub", "/foo[0]/bar"=>"Wub"}
       xml = Rsxml.to_xml([:foo, [:bar]]) do |tag,attrs,path| 
         $stderr << [tag, attrs, path].inspect
+        attrs.should == {}
         [txs[[path, tag].join("/")], attrs]
       end.should ==
         "<Blub><Wub></Wub></Blub>"
@@ -91,7 +92,6 @@ describe Rsxml do
         [tag.upcase, Hash[*attrs.map{|k,v| [k.to_s.upcase,v]}.flatten]]
       end.should ==
         '<FOO BAR="bar"></FOO>'
-      
     end
   end
 
