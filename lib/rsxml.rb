@@ -184,10 +184,10 @@ module Rsxml
     def wrap_fragment(fragment, ns_prefixes)
       return fragment if !ns_prefixes
 
-      ns_attrs = Hash[*ns_prefixes.map do |prefix,href|
+      ns_attrs = Hash[ns_prefixes.map do |prefix,href|
                         prefix = nil if prefix.to_s.length == 0
                         [["xmlns", prefix].compact.join(":"), href]
-                      end.flatten]
+                      end]
       xml = Builder::XmlMarkup.new
       xml.__send__(WRAP_ELEMENT, ns_attrs) do
         xml << fragment
@@ -229,18 +229,18 @@ module Rsxml
     end
 
     def read_attributes(attrs)
-      Hash[*attrs.map do |n, attr|
+      Hash[attrs.map do |n, attr|
              prefix = attr.namespace.prefix if attr.namespace
              name = attr.name
              ns_name = [prefix,name].compact.join(":")
              [ns_name, attr.value]
-           end.flatten]
+           end]
     end
 
     def namespace_attributes(namespaces, ns_stack)
-      Hash[*namespaces.map do |prefix,href|
+      Hash[namespaces.map do |prefix,href|
              [prefix, href] if !find_namespace(prefix, ns_stack)
-           end.compact.flatten]
+           end.compact]
     end
 
     def find_namespace(prefix, ns_stack)
