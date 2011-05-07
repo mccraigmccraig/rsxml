@@ -78,9 +78,9 @@ module Rsxml
 
     # namespace qualify attrs
     def qualify_attrs(ns_stack, attrs)
-      Hash[*attrs.map do |name,value|
+      Hash[attrs.map do |name,value|
              [qualify_name(ns_stack, name), value]
-           end.flatten]
+           end]
     end
 
     # produce a QName from a [LocalPart, prefix, URI] triple
@@ -88,10 +88,11 @@ module Rsxml
       return name if name.is_a?(String)
 
       local_part, prefix, uri = name
+      raise "invalid name: #{name}" if !prefix && uri
       if prefix
-        ns = find_namespace(ns_stack, prefix)
+        ns = find_namespace(ns_stack, prefix, uri)
         raise "namespace prefix not bound to a namespace: #{prefix}" if ! ns
-        "#{prefix}:#{local_part}"
+        [prefix, local_part].map{|s| s unless s.empty?}.compact.join(':')
       else
         local_part
       end
@@ -99,28 +100,55 @@ module Rsxml
 
     # split a QName into [LocalPart, prefix and URI] triple
     def unqualify_name(ns_stack, qname)
-      return qname if qname.is_a?(Array)
+      if qname.is_a?(Array)
+        if qname.length>1 && !qname[1].nil?
+          return qname
+        elsif qname.length>1 && qname[1].nil? && !qname[2].nil?
+          raise "invalid name: #{qname.inspect}"
+        else
+          return qname[0]
+        end
+      end
 
-      if qname =~ /^[^:]+:[^:]+$/
-        prefix, local_part = qname.split(':')
+      local_part, prefix = split_qname(qname)
+      if prefix
         uri = find_namespace(ns_stack, prefix)
         raise "namespace prefix not bound: #{prefix}" if ! uri
         [local_part, prefix, uri]
       else
-        [qname, nil, nil]
+        default_uri = find_namespace(ns_stack, "")
+        if default_uri
+          [local_part, "", default_uri]
+        else
+          local_part
+        end
       end
     end
 
+    def split_qname(qname)
+      return qname if qname.is_a?(Array)
 
+      if qname =~ /^[^:]+:[^:]+$/
+        [*qname.split(':')].reverse
+      else
+        qname
+      end
+    end
 
-    NS_ATTR_P = /^xmlns(?:$|\:.+)/
-    NS_ATTR_PREFIX = /^xmlns:?(.*)/
+    # returns the namespace uri for a prefix, if declared in the stack
+    def find_namespace(ns_stack, prefix, uri_check=nil)
+      tns = ns_stack.reverse.find{|ns| ns.has_key?(prefix)}
+      uri = tns[prefix] if tns
+      raise "prefix: '#{prefix}' is bound to uri: '#{uri}', but should be '#{uri_check}'" if uri_check && uri && uri!=uri_check
+      uri
+    end
+
 
     # extract a Hash of {prefix=>uri} mappings declared in attributes
-    def extract_namespaces(attrs)
+    def extract_declared_namespaces(attrs)
       Hash[attrs.map do |name,value|
-             local_part, prefix, uri = unqualify_name(name)
-             if (prefix && prefix == "xmlns") || (!prefix && local_part == "xmlns")
+             local_part, prefix, uri = split_qname(name)
+             if (prefix && prefix == "xmlns")
                [local_part, value]
              elsif (!prefix && local_part == "xmlns")
                ["", value]
@@ -128,23 +156,30 @@ module Rsxml
            end.compact]
     end
 
-    # extract a Hash of {prefix=>uri} mappings
-    def extract_undeclared_namespaces(tag, attrs)
+    # extract a Hash of {prefix=>uri} mappings from expanded tags
+    def extract_explicit_namespaces(tag, attrs)
       tag_local_part, tag_prefix, tag_uri = tag
       ns = {}
       ns[tag_prefix] = tag_uri if tag_prefix && tag_uri
 
       attrs.each do |name, value|
-        next unless name =~ NS_ATTR_P
         attr_local_part, attr_prefix, attr_uri = name
-        ns[attr_prefix] = attr_uri if attr_prefix && attr_uri
+        if attr_prefix && attr_uri
+          raise "bindings clash: '#{attr_prefix}'=>'#{ns[attr_prefix]}' , '#{attr_prefix}'=>'#{attr_uri}'" if ns.has_key?(attr_prefix) && ns[attr_prefix]!=attr_uri
+          ns[attr_prefix] = attr_uri
+        end
       end
+      ns
     end
 
-    # returns the namespace uri for a prefix, if declared in the stack
-    def find_namespace(ns_stack, prefix)
-      tns = ns_stack.reverse.find{|ns| ns.has_key?(prefix)}
-      tns[prefix] if tns
+    # merges two sets of namespace bindings, raising error on clash
+    def merge_namespace_bindings(ns1, ns2)
+      m = ns1.clone
+      ns2.each do |k,v|
+        raise "bindings clash: '#{k}'=>'#{m[k]}' , '#{k}'=>'#{v}'" if m.has_key?(k) && m[k]!=v
+        m[k]=v
+      end
+      m
     end
 
     def decompose_sexp(sexp)
