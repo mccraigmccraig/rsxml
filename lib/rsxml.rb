@@ -65,18 +65,21 @@ module Rsxml
       ns_new_context = merge_namespace_bindings(ns_declared, ns_undeclared)
 
 
-      if transformer
-        txtag, txattrs = transformer.call(tag, attrs, path.join("/"))
-        raise "transformer returned nil tag from \ntag: #{tag.inspect}\nattrs: #{attrs.inspect}>\npath: #{path.inspect}" if !txtag
-      else
-        txtag, txattrs = [tag, attrs]
-      end
+      # if transformer
+      #   txtag, txattrs = transformer.call(tag, attrs, path.join("/"))
+      #   raise "transformer returned nil tag from \ntag: #{tag.inspect}\nattrs: #{attrs.inspect}>\npath: #{path.inspect}" if !txtag
+      # else
+      #   txtag, txattrs = [tag, attrs]
+      # end
       
       # figure out which explicit namespaces need declaring
 
       ns_stack.push(ns_new_context)
       begin
-        xml.__send__(txtag, txattrs) do
+
+        qname = qualify_name(ns_stack, utag)
+        qattrs = qualify_attrs(ns_stack, uattrs)
+        xml.__send__(qname, qattrs) do
           children.each_with_index do |child, i|
             begin
               path.push("#{tag}[#{i}]")
