@@ -6,12 +6,71 @@ describe Rsxml do
       Rsxml.to_xml([:foo]).should == "<foo></foo>"
     end
 
+    it "should produce a single-element doc with namespaces" do
+      Rsxml.to_xml([[:bar, :foo, "http://foo.com/foo"]]).should == 
+        '<foo:bar xmlns:foo="http://foo.com/foo"></foo:bar>'
+    end
+
     it "should produce a single-element doc with attrs" do
       xml = Rsxml.to_xml([:foo, {:bar=>1, :baz=>"baz"}])
       r = Nokogiri::XML(xml).children.first
       r.name.should == "foo"
       r["bar"].should == "1"
       r["baz"].should == "baz"
+    end
+
+    it "should produce a single-element doc with  element namespace attrs" do
+      xml = Rsxml.to_xml([[:bar, :foo, "http://foo.com/foo"], {:bar=>1, :baz=>"baz"}])
+      r = Nokogiri::XML(xml).children.first
+      r.name.should == "bar"
+      r.namespace.href.should == "http://foo.com/foo"
+      r.namespace.prefix.should == "foo"
+      
+      r.attributes["bar"].namespace.should == nil
+      r["bar"].should == "1"
+
+      r.attributes["baz"].namespace.should == nil
+      r["baz"].should == "baz"
+    end
+
+    it "should produce a single-element doc with namespace and attr namespaces" do
+      xml = Rsxml.to_xml([[:bar, :foo, "http://foo.com/foo"], 
+                          {[:barbar, :bar, "http://bar.com/bar"]=>1, 
+                            :baz=>"baz"}])
+      r = Nokogiri::XML(xml).children.first
+      
+      r.name.should == "bar"
+      r.namespace.prefix.should == "foo"
+      r.namespace.href.should == "http://foo.com/foo"
+
+      barbar = r.attributes["barbar"]
+      barbar.namespace.prefix.should == "bar"
+      barbar.namespace.href.should == "http://bar.com/bar"
+      barbar.value.should == "1"
+
+      baz = r.attributes["baz"]
+      baz.namespace.should == nil
+      baz.value.should == "baz"
+    end
+
+    it "should produce a single-element doc with default namespace and attr namespaces" do
+      xml = Rsxml.to_xml([[:bar, "", "http://foo.com/foo"], 
+                          {[:barbar, :bar, "http://bar.com/bar"]=>1, 
+                            :baz=>"baz"}])
+      r = Nokogiri::XML(xml).children.first
+      
+      r.name.should == "bar"
+      r.namespace.prefix.should == nil
+      r.namespace.href.should == "http://foo.com/foo"
+
+      barbar = r.attributes["barbar"]
+      barbar.namespace.prefix.should == "bar"
+      barbar.namespace.href.should == "http://bar.com/bar"
+      barbar.value.should == "1"
+
+      baz = r.attributes["baz"]
+      baz.namespace.should == nil
+      baz.value.should == "baz"
     end
 
     it "should produce a doc with text content" do
@@ -308,6 +367,13 @@ describe Rsxml do
                                                {""=>"http://foo.com/foo",
                                                  "bar"=>"http://bar.com/bar"})
         }.should raise_error(/bindings clash/)
+      end
+    end
+
+    describe "unqualified_namespace_declarations" do
+      it "should produce unqalified namespaces declarations" do
+        Rsxml::Sexp.unqualified_namespace_declarations({""=>"http://default.com/default", "foo"=>"http://foo.com/foo"}).should == 
+          {"xmlns"=>"http://default.com/default", ["foo", "xmlns"]=>"http://foo.com/foo"}
       end
     end
 

@@ -61,24 +61,26 @@ module Rsxml
 
       ns_explicit = extract_explicit_namespaces(utag, uattrs)
       ns_undeclared = undeclared_namespaces(ns_stack_decl, ns_explicit)
+      ns_undeclared_decls = unqualified_namespace_declarations(ns_undeclared)
+      uattrs = uattrs.merge(ns_undeclared_decls)
 
       ns_new_context = merge_namespace_bindings(ns_declared, ns_undeclared)
 
 
-      # if transformer
-      #   txtag, txattrs = transformer.call(tag, attrs, path.join("/"))
-      #   raise "transformer returned nil tag from \ntag: #{tag.inspect}\nattrs: #{attrs.inspect}>\npath: #{path.inspect}" if !txtag
-      # else
-      #   txtag, txattrs = [tag, attrs]
-      # end
+      if transformer
+        txtag, txattrs = transformer.call(utag, uattrs, path.join("/"))
+        raise "transformer returned nil tag from \ntag: #{tag.inspect}\nattrs: #{attrs.inspect}>\npath: #{path.inspect}" if !txtag
+      else
+        txtag, txattrs = [utag, uattrs]
+      end
       
       # figure out which explicit namespaces need declaring
 
       ns_stack.push(ns_new_context)
       begin
 
-        qname = qualify_name(ns_stack, utag)
-        qattrs = qualify_attrs(ns_stack, uattrs)
+        qname = qualify_name(ns_stack, txtag)
+        qattrs = qualify_attrs(ns_stack, txattrs)
         xml.__send__(qname, qattrs) do
           children.each_with_index do |child, i|
             begin
@@ -124,9 +126,11 @@ module Rsxml
       local_part, prefix, uri = name
       raise "invalid name: #{name}" if !prefix && uri
       if prefix
-        ns = find_namespace(ns_stack, prefix, uri)
-        raise "namespace prefix not bound to a namespace: '#{prefix}'" if ! ns
-        [prefix, local_part].map{|s| s unless s.empty?}.compact.join(':')
+        if prefix!="xmlns"
+          ns = find_namespace(ns_stack, prefix, uri)
+          raise "namespace prefix not bound to a namespace: '#{prefix}'" if ! ns
+        end
+        [prefix, local_part].map{|s| s.to_s unless s.to_s.empty?}.compact.join(':')
       else
         local_part
       end
@@ -224,6 +228,18 @@ module Rsxml
            end.compact]
     end
 
+    # produce a Hash of namespace declaration attributes from 
+    # a Hash of namespace prefix bindings
+    def unqualified_namespace_declarations(ns)
+      Hash[ns.map do |prefix, uri|
+             if prefix==""
+               ["xmlns", uri]
+             else
+               [[prefix, "xmlns"], uri]
+             end
+           end]
+    end
+
     # merges two sets of namespace bindings, raising error on clash
     def merge_namespace_bindings(ns1, ns2)
       m = ns1.clone
@@ -236,7 +252,11 @@ module Rsxml
 
     def decompose_sexp(sexp)
       raise "invalid rsxml: #{rsxml.inspect}" if sexp.length<1
-      tag = sexp[0].to_s
+      if sexp[0].is_a?(Array)
+        tag = sexp[0]
+      else
+        tag = sexp[0].to_s
+      end
       if sexp[1].is_a?(Hash)
         attrs = sexp[1]
         children = sexp[2..-1]
