@@ -168,6 +168,37 @@ describe Rsxml do
       end
     end
 
+    describe "qualify_attrs" do
+      it "should qualify attribute names when there is a default namespaces" do
+        Rsxml::Sexp.qualify_attrs([{""=>"http://default.com/default","foo"=>"http://foo.com/foo"}], {["bar", "foo"] => "barbar", ["boo", ""] => "booboo", "baz" =>"bazbaz"}).should ==
+          {"foo:bar"=>"barbar", "boo"=>"booboo", "baz"=>"bazbaz"}
+      end
+
+      it "should raise an exception if a namespace is referenced but not bound" do
+        lambda {
+          Rsxml::Sexp.qualify_attrs([], {["bar", "foo"] => "barbar", "baz" =>"bazbaz"})
+        }.should raise_error(/not bound/)
+      end
+
+      it "should raise an exception if default namespace referenced but not bound" do
+        lambda {
+          Rsxml::Sexp.qualify_attrs([{"foo"=>"http://foo.com/foo"}], {["bar", "foo"] => "barbar", ["boo", ""] => "booboo", "baz" =>"bazbaz"})
+        }.should raise_error(/not bound/)
+      end
+    end
+
+    describe "unqualify_attrs" do
+      it "should unqualify attributes when there is no default namespace" do
+        Rsxml::Sexp.unqualify_attrs([{"foo"=>"http://foo.com/foo"}], {"foo:bar"=>"barbar", "baz"=>"bazbaz"}).should ==
+          {["bar", "foo", "http://foo.com/foo"]=>"barbar", "baz"=>"bazbaz"}
+      end
+
+      it "should unqualify attributes when there is a default namespace" do
+        Rsxml::Sexp.unqualify_attrs([{""=>"http://default.com/default", "foo"=>"http://foo.com/foo"}], {"foo:bar"=>"barbar", "baz"=>"bazbaz"}).should ==
+          {["bar", "foo", "http://foo.com/foo"]=>"barbar", "baz"=>"bazbaz"}
+      end
+    end
+
     describe "qualify_name" do
       it "should produce a qname from a pair or triple" do
         Rsxml::Sexp.qualify_name([{"foo"=>"http://foo.com/foo"}], 
@@ -228,7 +259,7 @@ describe Rsxml do
       end
     end
 
-    describe "extract_undeclared_namespaces" do
+    describe "extract_explicit_namespaces" do
       it "should extract a hash of explicit namespace bindings from expanded tags" do
         Rsxml::Sexp.extract_explicit_namespaces(["bar", "foo", "http://foo.com/foo"],
                                                 {["baz", "bar", "http://bar.com/bar"]=>"baz",
@@ -242,6 +273,19 @@ describe Rsxml do
                                                   {["baz", "foo", "http://bar.com/bar"]=>"baz",
                                                     ["boo", "", "http://default.com/default"]=>"boo"})
         }.should raise_error(/bindings clash/)
+      end
+    end
+
+    describe "undeclared_namespaces" do
+      it "should determine which explicit namespaces are not declared in context" do
+        Rsxml::Sexp.undeclared_namespaces([{""=>"http://default.com/default", "foo"=>"http://foo.com/foo"}], {""=>"http://default.com/default", "foo"=>"http://foo.com/foo", "bar"=>"http://bar.com/bar"}).should ==
+          {"bar"=>"http://bar.com/bar"}
+      end
+
+      it "should raise an exception if an explicit prefix clashes with a declard prefix" do
+        lambda {
+          Rsxml::Sexp.undeclared_namespaces([{""=>"http://default.com/default", "foo"=>"http://foo.com/foo"}], {""=>"http://foo.com/foo", "foo"=>"http://foo.com/foo", "bar"=>"http://bar.com/bar"})
+        }.should raise_error(/is bound to uri/)
       end
     end
 

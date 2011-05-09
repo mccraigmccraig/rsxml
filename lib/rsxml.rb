@@ -53,6 +53,18 @@ module Rsxml
     def write_xml(xml, sexp, ns_stack=[], path=[""], &transformer)
       tag, attrs, children = decompose_sexp(sexp)
       
+      ns_declared = extract_declared_namespaces(attrs)
+
+      ns_stack_decl = ns_stack + [ns_declared]
+      utag = unqualify_name(ns_stack_decl, tag)
+      uattrs = unqualify_attrs(ns_stack_decl, attrs)
+
+      ns_explicit = extract_explicit_namespaces(utag, uattrs)
+      ns_undeclared = undeclared_namespaces(ns_stack_decl, ns_explicit)
+
+      ns_new_context = merge_namespace_bindings(ns_declared, ns_undeclared)
+
+
       if transformer
         txtag, txattrs = transformer.call(tag, attrs, path.join("/"))
         raise "transformer returned nil tag from \ntag: #{tag.inspect}\nattrs: #{attrs.inspect}>\npath: #{path.inspect}" if !txtag
@@ -60,19 +72,26 @@ module Rsxml
         txtag, txattrs = [tag, attrs]
       end
       
-      xml.__send__(txtag, txattrs) do
-        children.each_with_index do |child, i|
-          begin
-            path.push("#{tag}[#{i}]")
-            if child.is_a?(Array)
-              write_xml(xml, child, ns_stack, path, &transformer)
-            else
-              xml << child
+      # figure out which explicit namespaces need declaring
+
+      ns_stack.push(ns_new_context)
+      begin
+        xml.__send__(txtag, txattrs) do
+          children.each_with_index do |child, i|
+            begin
+              path.push("#{tag}[#{i}]")
+              if child.is_a?(Array)
+                write_xml(xml, child, ns_stack, path, &transformer)
+              else
+                xml << child
+              end
+            ensure
+              path.pop
             end
-          ensure
-            path.pop
           end
         end
+      ensure
+        ns_stack.pop
       end
     end
 
@@ -80,6 +99,18 @@ module Rsxml
     def qualify_attrs(ns_stack, attrs)
       Hash[attrs.map do |name,value|
              [qualify_name(ns_stack, name), value]
+           end]
+    end
+
+    def unqualify_attrs(ns_stack, attrs)
+      Hash[attrs.map do |name, value|
+             uq_name = unqualify_name(ns_stack, name, true)
+             local_name, prefix, uri = uq_name
+             if !prefix || prefix==""
+               [local_name, value]
+             else
+               [uq_name, value]
+             end
            end]
     end
 
@@ -91,7 +122,7 @@ module Rsxml
       raise "invalid name: #{name}" if !prefix && uri
       if prefix
         ns = find_namespace(ns_stack, prefix, uri)
-        raise "namespace prefix not bound to a namespace: #{prefix}" if ! ns
+        raise "namespace prefix not bound to a namespace: '#{prefix}'" if ! ns
         [prefix, local_part].map{|s| s unless s.empty?}.compact.join(':')
       else
         local_part
@@ -99,7 +130,7 @@ module Rsxml
     end
 
     # split a QName into [LocalPart, prefix and URI] triple
-    def unqualify_name(ns_stack, qname)
+    def unqualify_name(ns_stack, qname, attr=false)
       if qname.is_a?(Array)
         if qname.length>1 && !qname[1].nil?
           return qname
@@ -112,15 +143,23 @@ module Rsxml
 
       local_part, prefix = split_qname(qname)
       if prefix
-        uri = find_namespace(ns_stack, prefix)
-        raise "namespace prefix not bound: #{prefix}" if ! uri
-        [local_part, prefix, uri]
-      else
-        default_uri = find_namespace(ns_stack, "")
-        if default_uri
-          [local_part, "", default_uri]
+        if prefix=="xmlns" && attr
+          [local_part, prefix]
         else
+          uri = find_namespace(ns_stack, prefix)
+          raise "namespace prefix not bound: '#{prefix}'" if ! uri
+          [local_part, prefix, uri]
+        end
+      else
+        if attr
           local_part
+        else
+          default_uri = find_namespace(ns_stack, "")
+          if default_uri
+            [local_part, "", default_uri]
+          else
+            local_part
+          end
         end
       end
     end
@@ -170,6 +209,16 @@ module Rsxml
         end
       end
       ns
+    end
+    
+    # figure out which explicit namespaces need declaring
+    #
+    # +ns_stack+ is the stack of namespace bindings
+    # +ns_explicit+ is the explicit refs for a tag
+    def undeclared_namespaces(ns_stack, ns_explicit)
+      Hash[ns_explicit.map do |prefix,uri|
+             [prefix, uri] if !find_namespace(ns_stack, prefix, uri)
+           end.compact]
     end
 
     # merges two sets of namespace bindings, raising error on clash
