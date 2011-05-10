@@ -57,21 +57,22 @@ module Rsxml
     def traverse(sexp, visitor, context=Context.new)
       tag, attrs, children = decompose_sexp(sexp)
       
+      # create ns bindings for explicit namespaces which need them
       ns_declared = Namespace::extract_declared_namespace_bindings(attrs)
-
-      ns_stack_decl = context.ns_stack + [ns_declared]
-      etag = Namespace::explode_qname(ns_stack_decl, tag)
-      eattrs = Namespace::explode_attr_qnames(ns_stack_decl, attrs)
-
-      # figure out which explicit namespaces need declaring
-      ns_explicit = Namespace::extract_explicit_namespace_bindings(etag, eattrs)
-      ns_undeclared = Namespace::undeclared_namespace_bindings(ns_stack_decl, ns_explicit)
-      ns_undeclared_decls = Namespace::exploded_namespace_declarations(ns_undeclared)
-
-      eattrs = eattrs.merge(ns_undeclared_decls)
+      ns_explicit = Namespace::extract_explicit_namespace_bindings(tag, attrs)
+      ns_undeclared = Namespace::undeclared_namespace_bindings(context.ns_stack + [ns_declared], ns_explicit)
       ns_new_bindings = Namespace::merge_namespace_bindings(ns_declared, ns_undeclared)
 
+      # and declarations for undeclared namespaces
+      ns_undeclared_decls = Namespace::exploded_namespace_declarations(ns_undeclared)
+
       context.ns_stack.push(ns_new_bindings)
+
+      etag = Namespace::explode_qname(context.ns_stack, tag)
+      eattrs = Namespace::explode_attr_qnames(context.ns_stack, attrs)
+
+      eattrs = eattrs.merge(ns_undeclared_decls)
+
       begin
         visitor.tag(context, etag, eattrs) do
           begin
