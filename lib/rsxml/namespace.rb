@@ -155,6 +155,21 @@ module Rsxml
       m
     end
 
+    # given the existing +ns_stack+ of ns bindings, a +tag+ and it's +attributes+,
+    # return a pair <tt>[ns_bindings, ns_additional_decls]</tt> containing
+    # ns bindings for the stack, and additional required (exploded) namespace 
+    # declarations to be added to the attributes
+    def namespace_bindings_declarations(ns_stack, tag, attrs)
+      ns_declared = extract_declared_namespace_bindings(attrs)
+      ns_explicit = extract_explicit_namespace_bindings(tag, attrs)
+      ns_undeclared = undeclared_namespace_bindings(ns_stack + [ns_declared], ns_explicit)
+      ns_bindings = merge_namespace_bindings(ns_declared, ns_undeclared)
+
+      # and declarations for undeclared namespaces
+      ns_additional_decls = exploded_namespace_declarations(ns_undeclared)
+      
+      [ns_bindings, ns_additional_decls]
+    end
 
   end
 end

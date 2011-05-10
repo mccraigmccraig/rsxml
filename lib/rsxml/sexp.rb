@@ -57,21 +57,14 @@ module Rsxml
     def traverse(sexp, visitor, context=Context.new)
       tag, attrs, children = decompose_sexp(sexp)
       
-      # create ns bindings for explicit namespaces which need them
-      ns_declared = Namespace::extract_declared_namespace_bindings(attrs)
-      ns_explicit = Namespace::extract_explicit_namespace_bindings(tag, attrs)
-      ns_undeclared = Namespace::undeclared_namespace_bindings(context.ns_stack + [ns_declared], ns_explicit)
-      ns_new_bindings = Namespace::merge_namespace_bindings(ns_declared, ns_undeclared)
+      ns_bindings, ns_additional_decls = Namespace::namespace_bindings_declarations(context.ns_stack, tag, attrs)
 
-      # and declarations for undeclared namespaces
-      ns_undeclared_decls = Namespace::exploded_namespace_declarations(ns_undeclared)
-
-      context.ns_stack.push(ns_new_bindings)
+      context.ns_stack.push(ns_bindings)
 
       etag = Namespace::explode_qname(context.ns_stack, tag)
       eattrs = Namespace::explode_attr_qnames(context.ns_stack, attrs)
 
-      eattrs = eattrs.merge(ns_undeclared_decls)
+      eattrs = eattrs.merge(ns_additional_decls)
 
       begin
         visitor.tag(context, etag, eattrs) do
