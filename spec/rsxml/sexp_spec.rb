@@ -3,19 +3,19 @@ require File.expand_path("../../spec_helper", __FILE__)
 module Rsxml
     describe "find_namespace" do
       it "should find a namespace uri in a stack of prefix bindings" do
-        Rsxml::Sexp.find_namespace([{"foo"=>"http://foo.com/foo"},
+        Rsxml::Sexp.find_namespace_uri([{"foo"=>"http://foo.com/foo"},
                                     {"bar"=>"http://bar.com/bar"}],
                                    "bar").should == "http://bar.com/bar"
-        Rsxml::Sexp.find_namespace([{"foo"=>"http://foo.com/foo"},
+        Rsxml::Sexp.find_namespace_uri([{"foo"=>"http://foo.com/foo"},
                                     {"bar"=>"http://bar.com/bar"}],
                                    "foo").should == "http://foo.com/foo"
       end
 
       it "should return nil if there is no matching binding" do
-        Rsxml::Sexp.find_namespace([{"foo"=>"http://foo.com/foo"},
+        Rsxml::Sexp.find_namespace_uri([{"foo"=>"http://foo.com/foo"},
                                     {"bar"=>"http://bar.com/bar"}],
                                    "blah").should == nil
-        Rsxml::Sexp.find_namespace([],
+        Rsxml::Sexp.find_namespace_uri([],
                                    "blah").should == nil
       end
 

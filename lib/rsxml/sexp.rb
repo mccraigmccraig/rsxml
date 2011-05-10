@@ -79,7 +79,7 @@ module Rsxml
       raise "invalid name: #{name}" if !prefix && uri
       if prefix
         if prefix!="xmlns"
-          ns = find_namespace(ns_stack, prefix, uri)
+          ns = find_namespace_uri(ns_stack, prefix, uri)
           raise "namespace prefix not bound to a namespace: '#{prefix}'" if ! ns
         end
         [prefix, local_part].map{|s| s.to_s unless s.to_s.empty?}.compact.join(':')
@@ -105,7 +105,7 @@ module Rsxml
         if prefix=="xmlns" && attr
           [local_part, prefix]
         else
-          uri = find_namespace(ns_stack, prefix)
+          uri = find_namespace_uri(ns_stack, prefix)
           raise "namespace prefix not bound: '#{prefix}'" if ! uri
           [local_part, prefix, uri]
         end
@@ -113,7 +113,7 @@ module Rsxml
         if attr
           local_part
         else
-          default_uri = find_namespace(ns_stack, "")
+          default_uri = find_namespace_uri(ns_stack, "")
           if default_uri
             [local_part, "", default_uri]
           else
@@ -135,7 +135,7 @@ module Rsxml
     end
 
     # returns the namespace uri for a prefix, if declared in the stack
-    def find_namespace(ns_stack, prefix, uri_check=nil)
+    def find_namespace_uri(ns_stack, prefix, uri_check=nil)
       tns = ns_stack.reverse.find{|ns| ns.has_key?(prefix)}
       uri = tns[prefix] if tns
       raise "prefix: '#{prefix}' is bound to uri: '#{uri}', but should be '#{uri_check}'" if uri_check && uri && uri!=uri_check
@@ -177,7 +177,7 @@ module Rsxml
     # +ns_explicit+ is the explicit refs for a tag
     def undeclared_namespaces(ns_stack, ns_explicit)
       Hash[ns_explicit.map do |prefix,uri|
-             [prefix, uri] if !find_namespace(ns_stack, prefix, uri)
+             [prefix, uri] if !find_namespace_uri(ns_stack, prefix, uri)
            end.compact]
     end
 
