@@ -34,7 +34,10 @@ module Rsxml
         @xml = xml_builder || Builder::XmlMarkup.new
       end
 
-      def tag(context, qname, qattrs)
+      def tag(context, name, attrs)
+        qname = Namespace::compact_qname(context.ns_stack, name)
+        qattrs = Namespace::compact_attr_qnames(context.ns_stack, attrs)
+
         xml.__send__(qname, qattrs) do
           yield
         end
@@ -70,12 +73,9 @@ module Rsxml
 
       context.ns_stack.push(ns_new_bindings)
       begin
-        qname = Namespace::compact_qname(context.ns_stack, etag)
-        qattrs = Namespace::compact_attr_qnames(context.ns_stack, eattrs)
-
-        visitor.tag(context, qname, qattrs) do
+        visitor.tag(context, etag, eattrs) do
           begin
-          context.push_node([qname, qattrs])
+          context.push_node([etag, eattrs])
             children.each_with_index do |child, i|
               if child.is_a?(Array)
                 traverse(child, visitor, context)
