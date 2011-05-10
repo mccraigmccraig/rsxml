@@ -1,26 +1,22 @@
 module Rsxml
   module Sexp
-    class << self
-      include Namespace
-    end
-
     module_function
 
     def write_xml(xml, sexp, ns_stack=[], path=[""], &transformer)
       tag, attrs, children = decompose_sexp(sexp)
       
-      ns_declared = extract_declared_namespace_bindings(attrs)
+      ns_declared = Namespace::extract_declared_namespace_bindings(attrs)
 
       ns_stack_decl = ns_stack + [ns_declared]
-      utag = explode_qname(ns_stack_decl, tag)
-      uattrs = explode_attr_qnames(ns_stack_decl, attrs)
+      utag = Namespace::explode_qname(ns_stack_decl, tag)
+      uattrs = Namespace::explode_attr_qnames(ns_stack_decl, attrs)
 
-      ns_explicit = extract_explicit_namespace_bindings(utag, uattrs)
-      ns_undeclared = undeclared_namespaces(ns_stack_decl, ns_explicit)
-      ns_undeclared_decls = unqualified_namespace_declarations(ns_undeclared)
+      ns_explicit = Namespace::extract_explicit_namespace_bindings(utag, uattrs)
+      ns_undeclared = Namespace::undeclared_namespace_bindings(ns_stack_decl, ns_explicit)
+      ns_undeclared_decls = Namespace::exploded_namespace_declarations(ns_undeclared)
       uattrs = uattrs.merge(ns_undeclared_decls)
 
-      ns_new_context = merge_namespace_bindings(ns_declared, ns_undeclared)
+      ns_new_context = Namespace::merge_namespace_bindings(ns_declared, ns_undeclared)
 
 
       if transformer
@@ -35,8 +31,8 @@ module Rsxml
       ns_stack.push(ns_new_context)
       begin
 
-        qname = compact_qname(ns_stack, txtag)
-        qattrs = compact_attr_qnames(ns_stack, txattrs)
+        qname = Namespace::compact_qname(ns_stack, txtag)
+        qattrs = Namespace::compact_attr_qnames(ns_stack, txattrs)
         xml.__send__(qname, qattrs) do
           children.each_with_index do |child, i|
             begin

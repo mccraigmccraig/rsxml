@@ -2,12 +2,14 @@ module Rsxml
   module Namespace
     module_function
     
+    # compact all attribute QNames to Strings
     def compact_attr_qnames(ns_stack, attrs)
       Hash[attrs.map do |name,value|
              [compact_qname(ns_stack, name), value]
            end]
     end
 
+    # explode attribute QNames to [LocalPart, prefix, URI] triples,
     def explode_attr_qnames(ns_stack, attrs)
       Hash[attrs.map do |name, value|
              uq_name = explode_qname(ns_stack, name, true)
@@ -20,7 +22,7 @@ module Rsxml
            end]
     end
 
-    # produce a QName from a [LocalPart, prefix, URI] triple
+    # produce a QName String from a [LocalPart, prefix, URI] triple
     def compact_qname(ns_stack, name)
       return name if name.is_a?(String)
 
@@ -37,7 +39,7 @@ module Rsxml
       end
     end
 
-    # split a QName into [LocalPart, prefix and URI] triple
+    # split a QName into [LocalPart, prefix, URI] triple
     def explode_qname(ns_stack, qname, attr=false)
       if qname.is_a?(Array)
         if qname.length>1 && !qname[1].nil?
@@ -104,7 +106,7 @@ module Rsxml
            end.compact]
     end
 
-    # extract a Hash of {prefix=>uri} mappings from expanded tags
+    # extract a Hash of {prefix=>uri} mappings from exploded QName tag and attrs
     def extract_explicit_namespace_bindings(tag, attrs)
       tag_local_part, tag_prefix, tag_uri = tag
       ns = {}
@@ -124,15 +126,16 @@ module Rsxml
     #
     # +ns_stack+ is the stack of namespace bindings
     # +ns_explicit+ is the explicit refs for a tag
-    def undeclared_namespaces(ns_stack, ns_explicit)
+    def undeclared_namespace_bindings(ns_stack, ns_explicit)
       Hash[ns_explicit.map do |prefix,uri|
              [prefix, uri] if !find_namespace_uri(ns_stack, prefix, uri)
            end.compact]
     end
 
-    # produce a Hash of namespace declaration attributes from 
+    # produce a Hash of namespace declaration attributes with exploded
+    # QNames, from 
     # a Hash of namespace prefix bindings
-    def unqualified_namespace_declarations(ns)
+    def exploded_namespace_declarations(ns)
       Hash[ns.map do |prefix, uri|
              if prefix==""
                ["xmlns", uri]
