@@ -126,33 +126,6 @@ describe Rsxml do
       r.attributes["baz"].namespace.href.should == "http://foo.com/foo"
       r.attributes["baz"].namespace.prefix.should == "foo"
     end
-
-    it "should transform a single tag if a transformer is supplied" do
-      xml = Rsxml.to_xml([:foo]) do |tag,attrs,path| 
-        path.should == ""
-        [tag.upcase, attrs]
-      end.should ==
-        "<FOO></FOO>"
-    end
-
-    it "should transform nested tags if a transformer is supplied" do
-      txs = {"/foo"=>"Blub", "/foo[0]/bar"=>"Wub"}
-      xml = Rsxml.to_xml([:foo, [:bar]]) do |tag,attrs,path| 
-        attrs.should == {}
-        [txs[[path, tag].join("/")], attrs]
-      end.should ==
-        "<Blub><Wub></Wub></Blub>"
-    end
-
-    it "should transform a tag with attributes if a transformer is supplied" do
-      xml = Rsxml.to_xml([:foo, {:bar=>"bar"}]) do |tag,attrs,path| 
-        path.should == ""
-        [tag.upcase, Hash[*attrs.map{|k,v| [k.to_s.upcase,v]}.flatten]]
-      end.should ==
-        '<FOO BAR="bar"></FOO>'
-    end
-
-
   end
 
   describe "to_rsxml" do
