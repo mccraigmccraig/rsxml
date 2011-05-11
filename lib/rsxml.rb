@@ -1,13 +1,22 @@
-$: << File.expand_path('../lib', __FILE__)
+$: << File.expand_path('../../lib', __FILE__)
 
 require 'nokogiri'
 require 'builder'
 require 'rsxml/namespace'
+require 'rsxml/visitor'
 require 'rsxml/sexp'
 require 'rsxml/xml'
 
 module Rsxml
+  class << self
+    attr_accessor :logger
+  end
+
   module_function
+
+  def log
+    yield(logger) if logger
+  end
 
   def check_opts(constraints, opts)
     (opts||{}).each do |k,v|
@@ -39,7 +48,7 @@ module Rsxml
     check_opts(TO_RSXML_OPTS, opts)
     doc = Xml.wrap_fragment(doc, opts[:ns])
     root = Xml.unwrap_fragment(Nokogiri::XML(doc).children.first)
-    Xml.read_xml(root, [])
+    Xml.read_xml(root)
   end
 
   # compare two documents in XML or Rsxml. returns +true+ if they are identical, and

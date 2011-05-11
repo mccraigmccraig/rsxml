@@ -1,32 +1,5 @@
 module Rsxml
   module Sexp
-    class Context
-      attr_reader :ns_stack
-      attr_reader :node_stack
-      attr_reader :prev_siblings
-      def initialize()
-        @ns_stack=[]
-        @node_stack=[]
-        @prev_siblings=[]
-        @sibling_stack=[]
-      end
-
-      def push_node(node)
-        node_stack.push(node)
-        @sibling_stack.push(@prev_siblings)
-        @prev_siblings=[]
-      end
-
-      def pop_node
-        n = node_stack.pop
-        @prev_siblings = @sibling_stack.pop
-        @prev_siblings << n
-      end
-
-      def processed_node(node)
-        @prev_siblings << node
-      end
-    end
 
     class WriteXmlVisitor
       attr_reader :xml
@@ -54,7 +27,9 @@ module Rsxml
 
     module_function
 
-    def traverse(sexp, visitor, context=Context.new)
+    # pre-order traversal of the sexp, calling methods on
+    # the visitor with each node
+    def traverse(sexp, visitor, context=Visitor::Context.new)
       tag, attrs, children = decompose_sexp(sexp)
       
       ns_bindings, ns_additional_decls = Namespace::namespace_bindings_declarations(context.ns_stack, tag, attrs)
@@ -68,8 +43,8 @@ module Rsxml
 
       begin
         visitor.tag(context, etag, eattrs) do
-          begin
           context.push_node([etag, eattrs])
+          begin
             children.each_with_index do |child, i|
               if child.is_a?(Array)
                 traverse(child, visitor, context)
@@ -90,6 +65,7 @@ module Rsxml
       visitor
     end
 
+    # decompose a sexp to a [tag, attrs, children] list
     def decompose_sexp(sexp)
       raise "invalid rsxml: #{rsxml.inspect}" if sexp.length<1
       if sexp[0].is_a?(Array)
