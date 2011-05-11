@@ -40,6 +40,32 @@ module Rsxml
       end
     end
 
+    describe "compact_qname" do
+      it "should compact exploded qnames" do
+        Visitor::ConstructRsxmlVisitor.new.compact_qname(["foo", "bar", "http://bar.com/bar"]).should ==
+          "bar:foo"
+        Visitor::ConstructRsxmlVisitor.new.compact_qname("foo").should ==
+          "foo"
+      end
+    end
+
+    describe "compact_attr_names" do
+      it "should compact exploded attribute names" do
+        Visitor::ConstructRsxmlVisitor.new.compact_attr_names({["foo", "bar", "http://bar.com/bar"]=>"foofoo", "baz"=>"bazbaz", ["foofoo", "bar"]=>"fff"}).should ==
+          {"bar:foo"=>"foofoo", "baz"=>"bazbaz", "bar:foofoo"=>"fff"}
+      end
+    end
+
+    describe "tag" do
+      it "should append the rsxml tag to the cursor element and yield" do
+      end
+    end
+
+    describe "text" do
+      it "should append the text to the cursor element" do
+      end
+    end
+
     it "should read a single element document" do
       root = Nokogiri::XML('<foo></foo>').children.first
       rsxml = Rsxml::Xml.traverse(root, Visitor::ConstructRsxmlVisitor.new).sexp
