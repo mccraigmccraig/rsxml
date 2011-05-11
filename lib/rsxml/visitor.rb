@@ -85,7 +85,7 @@ module Rsxml
       def strip_namespace_decls(attrs)
         Hash[attrs.map do |qname,value| 
                local_name, prefix, uri = qname
-               if !(prefix=="xmlns" || (prefix=="" && local_name=="xmlns"))
+               if !(prefix=="xmlns" || (prefix==nil && local_name=="xmlns"))
                  [qname,value]
                end
              end.compact]

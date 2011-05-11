@@ -29,6 +29,17 @@ module Rsxml
   end
 
   describe Visitor::ConstructRsxmlVisitor do
+    describe "strip_namespace_decls" do
+      it "should remove default and prefixed namespace decls from exploded attributes" do
+        Visitor::ConstructRsxmlVisitor.new.strip_namespace_decls({"xmlns"=>"http://default.com/default",
+                                                                   ["foo", "xmlns"]=>"http://foo.com/foo",
+                                                                   ["bar", "foo", "http://foo.com/foo"]=>"barbar",
+                                                                   "baz"=>"bazbaz"}).should ==
+          {["bar", "foo", "http://foo.com/foo"]=>"barbar",
+          "baz"=>"bazbaz"}
+      end
+    end
+
     it "should read a single element document" do
       root = Nokogiri::XML('<foo></foo>').children.first
       rsxml = Rsxml::Xml.traverse(root, Visitor::ConstructRsxmlVisitor.new).sexp
