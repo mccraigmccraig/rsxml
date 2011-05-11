@@ -1,30 +1,6 @@
 module Rsxml
   module Sexp
 
-    class WriteXmlVisitor
-      attr_reader :xml
-      def initialize(xml_builder=nil)
-        @xml = xml_builder || Builder::XmlMarkup.new
-      end
-
-      def tag(context, name, attrs)
-        qname = Namespace::compact_qname(context.ns_stack, name)
-        qattrs = Namespace::compact_attr_qnames(context.ns_stack, attrs)
-
-        xml.__send__(qname, qattrs) do
-          yield
-        end
-      end
-
-      def text(context, text)
-        xml << text
-      end
-
-      def to_s
-        xml.target!
-      end
-    end
-
     module_function
 
     # pre-order traversal of the sexp, calling methods on

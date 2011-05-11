@@ -29,7 +29,7 @@ module Rsxml
   #  Rsxml.to_xml(["Foo", {"foofoo"=>"10"}, ["Bar", "barbar"] ["Baz"]])
   #   => '<Foo foofoo="10"><Bar>barbar</Bar><Baz></Baz></Foo>' 
   def to_xml(rsxml, &transformer)
-    Sexp.traverse(rsxml, Sexp::WriteXmlVisitor.new).to_s
+    Sexp.traverse(rsxml, Visitor::WriteXmlVisitor.new).to_s
   end
 
   TO_RSXML_OPTS = {:ns=>nil}

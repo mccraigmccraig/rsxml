@@ -59,20 +59,6 @@ module Rsxml
     end
   end
 
-  describe Xml::ConstructRsxmlVisitor do
-    it "should read a single element document" do
-      root = Nokogiri::XML('<foo></foo>').children.first
-      rsxml = Rsxml::Xml.traverse(root, Xml::ConstructRsxmlVisitor.new).sexp
-      rsxml.should == ["foo"]
-    end
-
-    it "should read a single element document with attributes" do
-      root = Nokogiri::XML('<foo bar="10" baz="20"></foo>').children.first
-      rsxml = Rsxml::Xml.traverse(root, Xml::ConstructRsxmlVisitor.new).sexp
-      rsxml.should == ["foo", {"bar"=>"10", "baz"=>"20"}]
-    end
-  end
-
   describe "read_xml" do
 
     it "should explode qnames if given the :explode=>true option" do

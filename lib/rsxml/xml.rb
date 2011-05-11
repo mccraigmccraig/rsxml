@@ -49,41 +49,6 @@ module Rsxml
       [eelement, eattrs]
     end
 
-    class ConstructRsxmlVisitor
-      attr_reader :sexp
-      attr_reader :cursor_stack 
-
-      def initialize()
-        @cursor_stack = []
-        @sexp
-      end
-
-      def tag(context, tag, attrs)
-        if attrs.size>0
-          el = [tag, attrs]
-        else
-          el = [tag]
-        end
-
-        if !cursor_stack.last
-          @sexp = el
-        else
-          cursor_stack.last << el
-        end
-        cursor_stack.push(el)
-
-        begin
-          yield
-        ensure
-          cursor_stack.pop
-        end
-      end
-
-      def text(context, text)
-        cursor_stack.last << text
-      end
-    end
-
     # pre-order traversal of the Nokogiri Nodes, calling methods on
     # the visitor with each Node
     def traverse(element, visitor, context = Visitor::Context.new)
