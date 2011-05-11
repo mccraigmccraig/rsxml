@@ -48,7 +48,7 @@ module Rsxml
     check_opts(TO_RSXML_OPTS, opts)
     doc = Xml.wrap_fragment(doc, opts[:ns])
     root = Xml.unwrap_fragment(Nokogiri::XML(doc).children.first)
-    Xml.read_xml(root)
+    Xml.traverse(root, Visitor::ConstructRsxmlVisitor.new).sexp
   end
 
   # compare two documents in XML or Rsxml. returns +true+ if they are identical, and

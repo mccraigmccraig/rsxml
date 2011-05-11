@@ -65,8 +65,8 @@ module Rsxml
               if child.element?
                 traverse(child, visitor, context)
               elsif child.text?
-                visitor.text(context, child)
-                context.processed_node(child)
+                visitor.text(context, child.content)
+                context.processed_node(child.content)
               else
                 Rsxml.log{|logger| logger.warn("unknown Nokogiri Node type: #{child.inspect}")}
               end
@@ -82,52 +82,5 @@ module Rsxml
       visitor
     end
 
-    # def read_xml(element)
-    #   traverse(element, ConstructRsxmlVisitor).sexp
-    # end
-
-    def read_xml(node, ns_stack=[])
-      prefix = node.namespace.prefix if node.namespace
-      tag = node.name
-      ns_tag = [prefix,tag].compact.join(":")
-
-      attrs = read_attributes(node.attributes)
-      attrs = attrs.merge(namespace_attributes(node.namespaces, ns_stack))
-      attrs = nil if attrs.empty?
-
-      children = node.children.map do |child|
-        if child.text?
-          child.text
-        else
-          begin
-            ns_stack.push(node.namespaces)
-            read_xml(child, ns_stack)
-          ensure
-            ns_stack.pop
-          end
-        end
-      end
-
-      [ns_tag, attrs, *children].compact
-    end
-
-    def read_attributes(attrs)
-      Hash[attrs.map do |n, attr|
-             prefix = attr.namespace.prefix if attr.namespace
-             name = attr.name
-             ns_name = [prefix,name].compact.join(":")
-             [ns_name, attr.value]
-           end]
-    end
-
-    def namespace_attributes(namespaces, ns_stack)
-      Hash[namespaces.map do |prefix,href|
-             [prefix, href] if !find_namespace(prefix, ns_stack)
-           end.compact]
-    end
-
-    def find_namespace(prefix, ns_stack)
-      ns_stack.reverse.find{ |nsh| nsh.has_key?(prefix)}
-    end
   end
 end
