@@ -11,6 +11,11 @@ describe Rsxml do
         '<foo:bar xmlns:foo="http://foo.com/foo"></foo:bar>'
     end
 
+    it "should produce a fragment without namespace declarations if ns bindings are provided" do
+      Rsxml.to_xml(["foo:bar", {["baz", "foo"]=>"bazbaz"}], :ns=>{"foo"=>"http://foo.com/foo"}).should ==
+        '<foo:bar foo:baz="bazbaz"></foo:bar>'
+    end
+
     it "should produce a single-element doc with attrs" do
       xml = Rsxml.to_xml([:foo, {:bar=>1, :baz=>"baz"}])
       r = Nokogiri::XML(xml).children.first
@@ -132,7 +137,7 @@ describe Rsxml do
 
     def test_roundtrip(org) 
       xml = Rsxml.to_xml(org)
-      rsxml = Rsxml.to_rsxml(xml, :compact=>true)
+      rsxml = Rsxml.to_rsxml(xml, :style=>:xml)
       rsxml.should == org
     end
     
@@ -160,9 +165,9 @@ describe Rsxml do
       test_roundtrip(["foo:foofoo", {"xmlns:foo"=>"http://foo.com/foo", "foo:bar"=>"1", "foo:baz"=>"baz"}])
     end
 
-    it "should parse a doc with namespaces and return exploded names if :compact is false" do
+    it "should parse a doc with namespaces and return exploded names if :style is :exploded" do
       xml = Rsxml.to_xml(["foo:foofoo", {"xmlns:foo"=>"http://foo.com/foo", "foo:bar"=>"1", "foo:baz"=>"baz"}])
-      rsxml = Rsxml.to_rsxml(xml, :compact=>false)
+      rsxml = Rsxml.to_rsxml(xml, :style=>:exploded)
       rsxml.should == [["foofoo", "foo", "http://foo.com/foo"],
                        { ["bar", "foo", "http://foo.com/foo"]=>"1",
                          ["baz", "foo", "http://foo.com/foo"]=>"baz"}]
@@ -173,14 +178,14 @@ describe Rsxml do
       org_no_ns = ["foofoo", {"foo:bar"=>"1", "foo:baz"=>"baz"}]
       xml = '<foofoo foo:bar="1" foo:baz="baz"></foofoo>'
 
-      rsxml = Rsxml.to_rsxml(xml, :ns=>{:foo=>"http://foo.com/foo", ""=>"http://baz.com/baz"}, :compact=>true)
+      rsxml = Rsxml.to_rsxml(xml, :ns=>{:foo=>"http://foo.com/foo", ""=>"http://baz.com/baz"}, :style=>:xml)
 
       rsxml.should == org_no_ns
     end
 
     it "should return exploded namespaces if :compact is false when parsing a fragment" do
       xml = '<foofoo foo:bar="1" foo:baz="baz"></foofoo>'
-      rsxml = Rsxml.to_rsxml(xml, :ns=>{:foo=>"http://foo.com/foo", ""=>"http://baz.com/baz"}, :compact=>false)
+      rsxml = Rsxml.to_rsxml(xml, :ns=>{:foo=>"http://foo.com/foo", ""=>"http://baz.com/baz"}, :style=>:exploded)
 
       rsxml.should == [["foofoo", "", "http://baz.com/baz"],
                        { ["bar", "foo", "http://foo.com/foo"]=>"1",

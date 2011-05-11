@@ -20,14 +20,17 @@ module Rsxml
     yield(logger) if logger
   end
 
+  TO_XML_OPTS = {:ns=>nil}
+
   # convert an Rsxml s-expression representation of an XML document to XML
   #  Rsxml.to_xml(["Foo", {"foofoo"=>"10"}, ["Bar", "barbar"] ["Baz"]])
   #   => '<Foo foofoo="10"><Bar>barbar</Bar><Baz></Baz></Foo>' 
-  def to_xml(rsxml, &transformer)
-    Sexp.traverse(rsxml, Visitor::WriteXmlVisitor.new).to_s
+  def to_xml(rsxml, opts={})
+    opts = check_opts(TO_XML_OPTS, opts)
+    Sexp.traverse(rsxml, Visitor::WriteXmlVisitor.new, Visitor::Context.new(opts[:ns])).to_s
   end
 
-  TO_RSXML_OPTS = {:ns=>nil}.merge(Visitor::ConstructRsxmlVisitor::OPTS)
+  TO_RSXML_OPTS = {:ns=>nil}.merge(Visitor::BuildRsxmlVisitor::OPTS)
 
   # convert an XML string to an Rsxml s-expression representation
   #  Rsxml.to_rsxml('<Foo foofoo="10"><Bar>barbar</Bar><Baz></Baz></Foo>')
@@ -40,11 +43,10 @@ module Rsxml
   #  Rsxml.to_rsxml(fragment, {"foo"=>"http://foo.com/foo", ""=>"http://baz.com/baz"})
   #   => ["foo:Foo", {"foo:foofoo"=>"10", "xmlns:foo"=>"http://foo.com/foo", "xmlns"=>"http://baz.com/baz"}, ["Bar", "barbar"], ["Baz"]]
   def to_rsxml(doc, opts={})
-    opts = opts.clone
-    check_opts(TO_RSXML_OPTS, opts)
+    opts = check_opts(TO_RSXML_OPTS, opts)
     doc = Xml.wrap_fragment(doc, opts.delete(:ns))
     root = Xml.unwrap_fragment(Nokogiri::XML(doc).children.first)
-    Xml.traverse(root, Visitor::ConstructRsxmlVisitor.new(opts)).sexp
+    Xml.traverse(root, Visitor::BuildRsxmlVisitor.new(opts)).sexp
   end
 
   # compare two documents in XML or Rsxml. returns +true+ if they are identical, and

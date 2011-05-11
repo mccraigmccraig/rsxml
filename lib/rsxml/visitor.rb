@@ -8,8 +8,9 @@ module Rsxml
       attr_reader :ns_stack
       attr_reader :node_stack
       attr_reader :prev_siblings
-      def initialize()
+      def initialize(initial_ns_bindings = nil)
         @ns_stack=[]
+        @ns_stack << initial_ns_bindings if initial_ns_bindings
         @node_stack=[]
         @prev_siblings=[]
         @sibling_stack=[]
@@ -57,16 +58,19 @@ module Rsxml
       end
     end
 
-    class ConstructRsxmlVisitor
+    class BuildRsxmlVisitor
       attr_reader :sexp
       attr_reader :cursor_stack 
       attr_reader :opts
 
-      OPTS = {:compact=>nil}
+      # The <tt>:style</tt> option specifies how the Rsxml is to be produced
+      #  :xml style is with compact <tt>"prefix:local_name"</tt> Strings for QNames, and namespace declaration attributes
+      #  :exploded style is with <tt>[local_name, prefix, uri]</tt> triples for QNames, and no namespace declaration attributes
+      OPTS = {:style=>[:xml, :exploded]}
 
       def initialize(opts=nil)
         @opts = opts || {}
-        Util.check_opts(OPTS, opts)
+        opts = Util.check_opts(OPTS, opts)
         @cursor_stack = []
         @sexp
       end
@@ -93,10 +97,11 @@ module Rsxml
 
       def tag(context, tag, attrs)
 
-        if opts[:compact]
+        opts[:style] ||= :exploded
+        if opts[:style] == :xml
           tag = compact_qname(tag)
           attrs = compact_attr_names(attrs)
-        else
+        elsif opts[:style] == :exploded
           attrs = strip_namespace_decls(attrs)
         end
         
