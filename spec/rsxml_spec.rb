@@ -160,10 +160,7 @@ describe Rsxml do
     end
 
     it "should allow namespace prefixes to be specified when parsing a fragment" do
-      org = ["foofoo", {"foo:bar"=>"1", "foo:baz"=>"baz"}]
-      xml = Rsxml.to_xml(["foofoo",
-                          {["bar", "foo", "http://foo.com/foo"]=>"1", 
-                            ["baz", "foo", "http://foo.com/foo"]=>"baz"}])
+      xml = '<foofoo foo:bar="1" foo:baz="baz"></foofoo>'
 
       org_with_ns = ["foofoo", {"foo:bar"=>"1", "foo:baz"=>"baz", "xmlns"=>"http://baz.com/baz", "xmlns:foo"=>"http://foo.com/foo"}]
       rsxml = Rsxml.to_rsxml(xml, :ns=>{:foo=>"http://foo.com/foo", ""=>"http://baz.com/baz"})
