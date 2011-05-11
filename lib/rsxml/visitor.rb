@@ -69,8 +69,7 @@ module Rsxml
       OPTS = {:style=>[:xml, :exploded]}
 
       def initialize(opts=nil)
-        @opts = opts || {}
-        opts = Util.check_opts(OPTS, opts)
+        @opts = Util.check_opts(OPTS, opts) 
         @cursor_stack = []
         @sexp
       end
