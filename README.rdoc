@@ -1,6 +1,10 @@
 = rsxml
 
-A Ruby library to translate XML documents into an s-expression representation, and back again
+A Ruby library to translate XML documents into an s-expression representation, and back again, in the style of SXML : http://en.wikipedia.org/wiki/SXML
+
+Why would you want to do this ? Well, s-expressions can be == compared natively in Ruby, are easy to read
+and editors indent them nicely when embedded in code. These features make them very suitable for writing readable
+XML generation code and readable tests for XML generating code
 
 Rsxml represents XML documents as s-expressions thus :
 
@@ -17,14 +21,51 @@ It is easy to convert XML docuemnts to Rsxml representation and back again :
  Rsxml.to_rsxml(xml)
    => ["Foo", {"foofoo"=>"10"}, ["Bar", "barbar"]]
 
-If present, namespaces and namespace prefixes are retained :
+=== Namespaces
 
- xml = Rsxml.to_xml(["foo:foofoo", {"xmlns"=>"http://bar.com/bar", "xmlns:foo"=>"http://foo.com/foo", "foo:bar"=>1, "foo:baz"=>"baz"}])
-   => '<foo:foofoo foo:baz="baz" foo:bar="1" xmlns="http://bar.com/bar" xmlns:foo="http://foo.com/foo"></foo:foofoo>'
+XML namespaces are dealt with straightforwardly. When an XML document is converted to Rsxml, namespaces are preserved, and you can specify namespaces in an Rsxml structure in two ways
+* using QName prefixes and declarative attributes, exactly as with XML
+* using exploded QNames consisting of <tt>[local_name, prefix, uri]</tt> triples and <tt>[local_name, prefix]</tt> pairs
 
+=== Converting to Rsxml
 
- Rsxml.to_rsxml(xml)
-   => ["foo:foofoo", {"foo:baz"=>"baz", "foo:bar"=>"1", "xmlns:foo"=>"http://foo.com/foo", "xmlns"=>"http://bar.com/bar"}]
+When you convert an XML document to Rsxml you can choose either <tt>:xml</tt> or <tt>:exploded</tt> style
+
+==== <tt>:xml</tt> style
+
+In <tt>:xml</tt> style namespaces are declared using attributes, and namespaces are referenced using
+prefixed QNames, just as in XML
+
+ Rsxml.to_rsxml('<foo:foofoo xmlns:foo="http://foo.com/foo" foo:bar="barbar"/>', :style=>:xml)
+   => ["foo:foofoo", {"foo:bar"=>"barbar", "xmlns:foo"=>"http://foo.com/foo"}] 
+
+==== <tt>:exploded</tt> style
+
+In <tt>:exploded</tt> style namespaces are not declared using attributes, and QNames are specified
+using <tt>[local_name, prefix, uri]</tt> triples
+
+ Rsxml.to_rsxml('<foo:foofoo xmlns:foo="http://foo.com/foo" foo:bar="barbar"/>', :style=>:exploded)
+   => [["foofoo", "foo", "http://foo.com/foo"], {["bar", "foo", "http://foo.com/foo"]=>"barbar"}]
+
+=== Converting to XML
+
+Rsxml styles can be mixed, and unnecessary namespace references can be skipped for readability
+
+ Rsxml.to_xml([["foofoo", "foo", "http://foo.com/foo"], {"foo:bar"=>"1", ["baz", "foo"]=>"2"}])
+   => '<foo:foofoo foo:baz="2" foo:bar="1" xmlns:foo="http://foo.com/foo"></foo:foofoo>'
+
+=== Fragments
+
+XML Fragments, without proper namespace declarations, can be parsed by passing a Hash of namespace
+prefix bindings
+
+ Rsxml.to_rsxml('<foo:foofoo foo:bar="barbar"/>', :ns=>{"foo"=>"http://foo.com/foo"}, :style=>:xml)
+   => ["foo:foofoo", {"foo:bar"=>"barbar"}] 
+
+Fragments can be generated similarly :
+
+ Rsxml.to_xml(["foo:foofoo", {"foo:bar"=>"barbar"}], :ns=>{"foo"=>"http://foo.com/foo"})
+   => '<foo:foofoo foo:bar="barbar"></foo:foofoo>'
 
 == Install
 
