@@ -129,9 +129,10 @@ describe Rsxml do
   end
 
   describe "to_rsxml" do
+
     def test_roundtrip(org) 
       xml = Rsxml.to_xml(org)
-      rsxml = Rsxml.to_rsxml(xml)
+      rsxml = Rsxml.to_rsxml(xml, :compact=>true)
       rsxml.should == org
     end
     
@@ -159,13 +160,31 @@ describe Rsxml do
       test_roundtrip(["foo:foofoo", {"xmlns:foo"=>"http://foo.com/foo", "foo:bar"=>"1", "foo:baz"=>"baz"}])
     end
 
+    it "should parse a doc with namespaces and return exploded names if :compact is false" do
+      xml = Rsxml.to_xml(["foo:foofoo", {"xmlns:foo"=>"http://foo.com/foo", "foo:bar"=>"1", "foo:baz"=>"baz"}])
+      rsxml = Rsxml.to_rsxml(xml, :compact=>false)
+      rsxml.should == [["foofoo", "foo", "http://foo.com/foo"],
+                       { ["bar", "foo", "http://foo.com/foo"]=>"1",
+                         ["baz", "foo", "http://foo.com/foo"]=>"baz"}]
+
+    end
+
     it "should allow namespace prefixes to be specified when parsing a fragment" do
       org_no_ns = ["foofoo", {"foo:bar"=>"1", "foo:baz"=>"baz"}]
       xml = '<foofoo foo:bar="1" foo:baz="baz"></foofoo>'
 
-      rsxml = Rsxml.to_rsxml(xml, :ns=>{:foo=>"http://foo.com/foo", ""=>"http://baz.com/baz"})
+      rsxml = Rsxml.to_rsxml(xml, :ns=>{:foo=>"http://foo.com/foo", ""=>"http://baz.com/baz"}, :compact=>true)
 
       rsxml.should == org_no_ns
+    end
+
+    it "should return exploded namespaces if :compact is false when parsing a fragment" do
+      xml = '<foofoo foo:bar="1" foo:baz="baz"></foofoo>'
+      rsxml = Rsxml.to_rsxml(xml, :ns=>{:foo=>"http://foo.com/foo", ""=>"http://baz.com/baz"}, :compact=>false)
+
+      rsxml.should == [["foofoo", "", "http://baz.com/baz"],
+                       { ["bar", "foo", "http://foo.com/foo"]=>"1",
+                         ["baz", "foo", "http://foo.com/foo"]=>"baz"}]
     end
 
   end

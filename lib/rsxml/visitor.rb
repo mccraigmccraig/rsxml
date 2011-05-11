@@ -1,5 +1,9 @@
 module Rsxml
   module Visitor
+    class << self
+      include Util
+    end
+
     class Context
       attr_reader :ns_stack
       attr_reader :node_stack
@@ -30,6 +34,7 @@ module Rsxml
 
     class WriteXmlVisitor
       attr_reader :xml
+
       def initialize(xml_builder=nil)
         @xml = xml_builder || Builder::XmlMarkup.new
       end
@@ -57,8 +62,11 @@ module Rsxml
       attr_reader :cursor_stack 
       attr_reader :opts
 
-      def initialize(opts={})
-        @opts = opts
+      OPTS = {:compact=>nil}
+
+      def initialize(opts=nil)
+        @opts = opts || {}
+        Util.check_opts(OPTS, opts)
         @cursor_stack = []
         @sexp
       end
@@ -73,10 +81,24 @@ module Rsxml
         Hash[attrs.map{|qname,value| [compact_qname(qname), value]}]
       end
 
+      # strip namespace decls from exploded attributes
+      def strip_namespace_decls(attrs)
+        Hash[attrs.map do |qname,value| 
+               local_name, prefix, uri = qname
+               if !(prefix=="xmlns" || (prefix=="" && local_name=="xmlns"))
+                 [qname,value]
+               end
+             end.compact]
+      end
+
       def tag(context, tag, attrs)
 
-        tag = compact_qname(tag)
-        attrs = compact_attr_names(attrs)
+        if opts[:compact]
+          tag = compact_qname(tag)
+          attrs = compact_attr_names(attrs)
+        else
+          attrs = strip_namespace_decls(attrs)
+        end
         
         el = [tag, (attrs if attrs.size>0)].compact
 

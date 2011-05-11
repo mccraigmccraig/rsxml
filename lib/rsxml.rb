@@ -2,6 +2,7 @@ $: << File.expand_path('../../lib', __FILE__)
 
 require 'nokogiri'
 require 'builder'
+require 'rsxml/util'
 require 'rsxml/namespace'
 require 'rsxml/visitor'
 require 'rsxml/sexp'
@@ -9,6 +10,7 @@ require 'rsxml/xml'
 
 module Rsxml
   class << self
+    include Util
     attr_accessor :logger
   end
 
@@ -18,13 +20,6 @@ module Rsxml
     yield(logger) if logger
   end
 
-  def check_opts(constraints, opts)
-    (opts||{}).each do |k,v|
-      raise "opt not permitted: #{k}" if !constraints.has_key?(k)
-      constraint = constraints[k]
-    end
-  end
-
   # convert an Rsxml s-expression representation of an XML document to XML
   #  Rsxml.to_xml(["Foo", {"foofoo"=>"10"}, ["Bar", "barbar"] ["Baz"]])
   #   => '<Foo foofoo="10"><Bar>barbar</Bar><Baz></Baz></Foo>' 
@@ -32,7 +27,7 @@ module Rsxml
     Sexp.traverse(rsxml, Visitor::WriteXmlVisitor.new).to_s
   end
 
-  TO_RSXML_OPTS = {:ns=>nil}
+  TO_RSXML_OPTS = {:ns=>nil}.merge(Visitor::ConstructRsxmlVisitor::OPTS)
 
   # convert an XML string to an Rsxml s-expression representation
   #  Rsxml.to_rsxml('<Foo foofoo="10"><Bar>barbar</Bar><Baz></Baz></Foo>')
@@ -45,10 +40,11 @@ module Rsxml
   #  Rsxml.to_rsxml(fragment, {"foo"=>"http://foo.com/foo", ""=>"http://baz.com/baz"})
   #   => ["foo:Foo", {"foo:foofoo"=>"10", "xmlns:foo"=>"http://foo.com/foo", "xmlns"=>"http://baz.com/baz"}, ["Bar", "barbar"], ["Baz"]]
   def to_rsxml(doc, opts={})
+    opts = opts.clone
     check_opts(TO_RSXML_OPTS, opts)
-    doc = Xml.wrap_fragment(doc, opts[:ns])
+    doc = Xml.wrap_fragment(doc, opts.delete(:ns))
     root = Xml.unwrap_fragment(Nokogiri::XML(doc).children.first)
-    Xml.traverse(root, Visitor::ConstructRsxmlVisitor.new).sexp
+    Xml.traverse(root, Visitor::ConstructRsxmlVisitor.new(opts)).sexp
   end
 
   # compare two documents in XML or Rsxml. returns +true+ if they are identical, and
