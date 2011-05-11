@@ -62,9 +62,7 @@ module Rsxml
     end
   end
 
-  describe "read_xml" do
-
-    it "should explode qnames if given the :explode=>true option" do
-    end
+  describe "traverse" do
   end
+
 end

@@ -73,7 +73,7 @@ module Rsxml
 
       raise ComparisonError.new("element names differ: '#{taga}', '#{tagb}'", path) if taga != tagb
       raise ComparisonError.new("attributes differ", path) if attrsa != attrsb
-      raise ComparisonError.new("child cound differes", path) if childrena.length != childrenb.length
+      raise ComparisonError.new("child count differs", path) if childrena.length != childrenb.length
 
       path = [path, taga].compact.join("/")
       (0...childrena.length).each do |i|
