@@ -55,18 +55,30 @@ module Rsxml
     class ConstructRsxmlVisitor
       attr_reader :sexp
       attr_reader :cursor_stack 
+      attr_reader :opts
 
-      def initialize()
+      def initialize(opts={})
+        @opts = opts
         @cursor_stack = []
         @sexp
       end
 
+      def compact_qname(qname)
+        local_name, prefix, uri = qname
+
+        [prefix, local_name].map{|s| (!s || s.empty?) ? nil : s}.compact.join(":")
+      end
+
+      def compact_attr_names(attrs)
+        Hash[attrs.map{|qname,value| [compact_qname(qname), value]}]
+      end
+
       def tag(context, tag, attrs)
-        if attrs.size>0
-          el = [tag, attrs]
-        else
-          el = [tag]
-        end
+
+        tag = compact_qname(tag)
+        attrs = compact_attr_names(attrs)
+        
+        el = [tag, (attrs if attrs.size>0)].compact
 
         if !cursor_stack.last
           @sexp = el

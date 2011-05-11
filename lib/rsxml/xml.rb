@@ -36,6 +36,16 @@ module Rsxml
       node = node_uri ? [node_name, node_prefix, node_uri] : node_name
     end
 
+    def explode_ns_definitions(element)
+      Hash[element.namespace_definitions.map do |ns|
+             if ns.prefix
+               [[ns.prefix, "xmlns"], ns.href]
+             else
+               ["xmlns", ns.href]
+             end
+           end]
+    end
+
     # given a <tt>Nokogiri::XML::Element</tt> in +element+ , produce
     # a <tt>[[local_name, prefix, namespace], {[local_name, prefix, namespace]=>value}</tt>
     # pair of exploded element name and attributes with exploded names
@@ -45,6 +55,9 @@ module Rsxml
       eattrs = Hash[element.attributes.map do |name,attr|
                       [explode_node(attr), attr.value]
                     end]
+
+      ns_decl_attrs = explode_ns_definitions(element)
+      eattrs = eattrs.merge(ns_decl_attrs)
 
       [eelement, eattrs]
     end
