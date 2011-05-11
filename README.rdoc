@@ -1,10 +1,12 @@
 = rsxml
 
-A Ruby library to translate XML documents into an s-expression representation, and back again, in the style of SXML : http://en.wikipedia.org/wiki/SXML
+A Ruby library to translate XML documents into an s-expression representation, and back again, in the style of SXML[http://en.wikipedia.org/wiki/SXML]
 
 Why would you want to do this ? Well, s-expressions can be == compared natively in Ruby, are easy to read
 and editors indent them nicely when embedded in code. These features make them very suitable for writing readable
 XML generation code and readable tests for XML generating code
+
+Rsxml uses Nokogiri[http://nokogiri.org/] for parsing XML, and Builder[http://builder.rubyforge.org/] to generate it. Rsxml is not intended to be a feature complete XML representation : It does not attempt to represent PIs, CDATA etc, but it does make it very easy to use and generate straightforward XML documents from Ruby
 
 Rsxml represents XML documents as s-expressions thus :
 
