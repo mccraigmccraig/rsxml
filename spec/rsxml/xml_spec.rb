@@ -65,6 +65,12 @@ module Rsxml
       rsxml = Rsxml::Xml.traverse(root, Xml::ConstructRsxmlVisitor.new).sexp
       rsxml.should == ["foo"]
     end
+
+    it "should read a single element document with attributes" do
+      root = Nokogiri::XML('<foo bar="10" baz="20"></foo>').children.first
+      rsxml = Rsxml::Xml.traverse(root, Xml::ConstructRsxmlVisitor.new).sexp
+      rsxml.should == ["foo", {"bar"=>"10", "baz"=>"20"}]
+    end
   end
 
   describe "read_xml" do
