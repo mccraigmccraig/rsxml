@@ -36,16 +36,6 @@ module Rsxml
       node = node_uri ? [node_name, node_prefix, node_uri] : node_name
     end
 
-    def explode_ns_definitions(element)
-      Hash[element.namespace_definitions.map do |ns|
-             if ns.prefix
-               [[ns.prefix, "xmlns"], ns.href]
-             else
-               ["xmlns", ns.href]
-             end
-           end]
-    end
-
     # given a <tt>Nokogiri::XML::Element</tt> in +element+ , produce
     # a <tt>[[local_name, prefix, namespace], {[local_name, prefix, namespace]=>value}</tt>
     # pair of exploded element name and attributes with exploded names
@@ -56,9 +46,6 @@ module Rsxml
                       [explode_node(attr), attr.value]
                     end]
 
-      ns_decl_attrs = explode_ns_definitions(element)
-      eattrs = eattrs.merge(ns_decl_attrs)
-
       [eelement, eattrs]
     end
 
@@ -67,12 +54,12 @@ module Rsxml
     def traverse(element, visitor, context = Visitor::Context.new)
       eelement, eattrs = explode_element(element)
 
-      ns_bindings = Rsxml::Namespace.extract_declared_namespace_bindings(element.namespaces)
+      _, ns_bindings = Rsxml::Namespace.partition_namespace_decls(element.namespaces)
       context.ns_stack.push(ns_bindings)
 
       begin
-        visitor.tag(context, eelement, eattrs) do
-          context.push_node([eelement, eattrs])
+        visitor.tag(context, eelement, eattrs, ns_bindings) do
+          context.push_node([eelement, eattrs, ns_bindings])
           begin
             element.children.each do |child|
               if child.element?

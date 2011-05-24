@@ -159,10 +159,10 @@ module Rsxml
 
   end
 
-  describe "extract_declared_namespace_bindings" do
-    it "should extract a hash of declared namespace bindings from a Hash of attributes" do
-      Namespace.extract_declared_namespace_bindings({"xmlns"=>"http://default.com/default", "xmlns:foo"=>"http://foo.com/foo", "foo"=>"bar"}).should ==
-        {""=>"http://default.com/default", "foo"=>"http://foo.com/foo"}
+  describe "partition_namespace_decls" do
+    it "should partition attributes into non-namespace attributes and a hash of namespace bindings" do
+      Namespace.partition_namespace_decls({"xmlns"=>"http://default.com/default", "xmlns:foo"=>"http://foo.com/foo", "foo"=>"bar"}).should ==
+        [{"foo"=>"bar"},{""=>"http://default.com/default", "foo"=>"http://foo.com/foo"}]
     end
   end
 
@@ -225,26 +225,31 @@ module Rsxml
     end
   end
 
-  describe "namespace_bindings_declarations" do
-    it "should extract declared and explicit bindings and additional declarations" do
-      Namespace.namespace_bindings_declarations([{"foo"=>"http://foo.com/foo"}], 
-                                                [:bar, "foo", "http://foo.com/foo"], 
-                                                { [:b, "bar", "http://bar.com/bar"]=>"barbar",
-                                                  [:c, "baz", "http://baz.com/baz"]=>"bazbaz",
-                                                  [:d, "foo"]=>"booboo"}).should ==
-        [{ "baz"=>"http://baz.com/baz", 
-           "bar"=>"http://bar.com/bar"}, 
-         { ["baz", "xmlns"]=>"http://baz.com/baz", 
-           ["bar", "xmlns"]=>"http://bar.com/bar"}]
+  describe "non_ns_attrs_ns_bindings" do
+    it "should extract non-ns attributes and explicit namespace bindings" do
+      Namespace.non_ns_attrs_ns_bindings([{"foo"=>"http://foo.com/foo"}], 
+                                         [:bar, "foo", "http://foo.com/foo"], 
+                                         { "xmlns:boo"=>"http://boo.com/boo",
+                                           [:b, "bar", "http://bar.com/bar"]=>"barbar",
+                                           [:c, "baz", "http://baz.com/baz"]=>"bazbaz",
+                                           [:d, "foo"]=>"booboo"}).should ==
+        [{[:b, "bar", "http://bar.com/bar"]=>"barbar",
+           [:c, "baz", "http://baz.com/baz"]=>"bazbaz",
+           [:d, "foo"]=>"booboo"},
+         { "baz"=>"http://baz.com/baz", 
+           "bar"=>"http://bar.com/bar",
+           "boo"=>"http://boo.com/boo"}]
     end
 
     it "should extract explicit default namespace bindings" do
-      Namespace.namespace_bindings_declarations([{"foo"=>"http://foo.com/foo"}], 
-                                                [:bar, "", "http://default.com/default"], 
-                                                { [:d, "foo"]=>"booboo"}).should ==
-        [{ ""=>"http://default.com/default"}, 
-         { "xmlns"=>"http://default.com/default"}]
+      Namespace.non_ns_attrs_ns_bindings([{"foo"=>"http://foo.com/foo"}], 
+                                         [:bar, "", "http://default.com/default"], 
+                                         { [:d, "foo"]=>"booboo"}).should ==
+        [{ [:d, "foo"]=>"booboo"},
+         { ""=>"http://default.com/default"}]
     end
+
+    
   end
 
 end

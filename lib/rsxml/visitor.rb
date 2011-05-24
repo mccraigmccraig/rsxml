@@ -62,16 +62,17 @@ module Rsxml
       attr_reader :sexp
       attr_reader :cursor_stack 
       attr_reader :opts
+      attr_reader :tag_transformer
 
       # The <tt>:style</tt> option specifies how the Rsxml is to be produced
       #  :xml style is with compact <tt>"prefix:local_name"</tt> Strings for QNames, and namespace declaration attributes
       #  :exploded style is with <tt>[local_name, prefix, uri]</tt> triples for QNames, and no namespace declaration attributes
       OPTS = {:style=>[:xml, :exploded]}
 
-      def initialize(opts=nil)
+      def initialize(opts=nil, &tag_transformer)
         @opts = Util.check_opts(OPTS, opts) 
         @cursor_stack = []
-        @sexp
+        @tag_transformer = tag_transformer
       end
 
       def compact_qname(qname)
@@ -84,24 +85,33 @@ module Rsxml
         Hash[attrs.map{|qname,value| [compact_qname(qname), value]}]
       end
 
-      # strip namespace decls from exploded attributes
-      def strip_namespace_decls(attrs)
-        Hash[attrs.map do |qname,value| 
-               local_name, prefix, uri = qname
-               if !(prefix=="xmlns" || (prefix==nil && local_name=="xmlns"))
-                 [qname,value]
-               end
-             end.compact]
+      # split exploded attributes into attrs and namespace related attrs
+      def partition_namespace_decls(attrs)
+        attrs = []
+        namespaces = []
+        attrs.each do |qname,value| 
+          local_name, prefix, uri = qname
+          if prefix=="xmlns" || (prefix==nil && local_name=="xmlns")
+            namespaces << [qname, uri]
+          else
+            attrs << [qname,value]
+          end
+        end
+        [Hash[attrs], Hash[namespaces]]
       end
 
       def tag(context, tag, attrs)
+
+        attrs, ns_attrs = partition_namespace_decls(attrs)
+
+        tag, attrs = tag_transformer.call(context, tag, attrs) if tag_transformer
 
         opts[:style] ||= :exploded
         if opts[:style] == :xml
           tag = compact_qname(tag)
           attrs = compact_attr_names(attrs)
         elsif opts[:style] == :exploded
-          attrs = strip_namespace_decls(attrs)
+          attrs = partition_namespace_decls(attrs)
         end
         
         el = [tag, (attrs if attrs.size>0)].compact

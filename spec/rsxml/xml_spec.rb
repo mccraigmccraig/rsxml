@@ -56,9 +56,7 @@ module Rsxml
       eelement, eattrs = Rsxml::Xml.explode_element(root)
       eelement.should == ["bar", "foo", "http://foo.com/foo"]
       eattrs.should == {"a"=>"aa", 
-        ["b", "foo", "http://foo.com/foo"]=>"bb",
-        ["foo", "xmlns"]=>"http://foo.com/foo",
-        "xmlns"=>"http://default.com/default"}
+        ["b", "foo", "http://foo.com/foo"]=>"bb"}
     end
   end
 

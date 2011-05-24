@@ -8,17 +8,15 @@ module Rsxml
     def traverse(sexp, visitor, context=Visitor::Context.new)
       tag, attrs, children = decompose_sexp(sexp)
       
-      ns_bindings, ns_additional_decls = Namespace::namespace_bindings_declarations(context.ns_stack, tag, attrs)
+      non_ns_attrs, ns_bindings = Namespace::non_ns_attrs_ns_bindings(context.ns_stack, tag, attrs)
 
       context.ns_stack.push(ns_bindings)
 
       etag = Namespace::explode_qname(context.ns_stack, tag)
-      eattrs = Namespace::explode_attr_qnames(context.ns_stack, attrs)
-
-      eattrs = eattrs.merge(ns_additional_decls)
+      eattrs = Namespace::explode_attr_qnames(context.ns_stack, non_ns_attrs)
 
       begin
-        visitor.tag(context, etag, eattrs) do
+        visitor.tag(context, etag, eattrs, ns_bindings) do
           context.push_node([etag, eattrs])
           begin
             children.each_with_index do |child, i|

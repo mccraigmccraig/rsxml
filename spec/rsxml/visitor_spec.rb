@@ -29,9 +29,9 @@ module Rsxml
   end
 
   describe Visitor::BuildRsxmlVisitor do
-    describe "strip_namespace_decls" do
+    describe "partition_namespace_decls" do
       it "should remove default and prefixed namespace decls from exploded attributes" do
-        Visitor::BuildRsxmlVisitor.new.strip_namespace_decls({"xmlns"=>"http://default.com/default",
+        Visitor::BuildRsxmlVisitor.new.partition_namespace_decls({"xmlns"=>"http://default.com/default",
                                                                    ["foo", "xmlns"]=>"http://foo.com/foo",
                                                                    ["bar", "foo", "http://foo.com/foo"]=>"barbar",
                                                                    "baz"=>"bazbaz"}).should ==
@@ -76,6 +76,40 @@ module Rsxml
       root = Nokogiri::XML('<foo bar="10" baz="20"></foo>').children.first
       rsxml = Rsxml::Xml.traverse(root, Visitor::BuildRsxmlVisitor.new).sexp
       rsxml.should == ["foo", {"bar"=>"10", "baz"=>"20"}]
+    end
+
+    describe "tag_transformer" do
+      def capitalize_local_name(qname)
+        local_name, prefix, uri = qname
+        if uri
+          [local_name.capitalize, prefix, uri]
+        else
+          local_name.capitalize
+        end
+      end
+
+      it "should call a tag_transformer block to transform tags and attrs" do
+        root = Nokogiri::XML('<foo bar="10" baz="20"></foo>').children.first
+        rsxml = Rsxml::Xml.traverse(root, Visitor::BuildRsxmlVisitor.new do |context,tag,attrs|
+                                      ctag = capitalize_local_name(tag)
+                                      cattrs = Hash[attrs.map{|n,v| [capitalize_local_name(n), v]}]
+                                      [ctag, cattrs]
+                                    end ).sexp
+                                        
+        rsxml.should ==
+          ["Foo", {"Bar"=>"10", "Baz"=>"20"}]
+
+        root = Nokogiri::XML('<a:foo bar="10" baz="20" xmlns:a="http://a.com/a"></a:foo>').children.first
+        rsxml = Rsxml::Xml.traverse(root, Visitor::BuildRsxmlVisitor.new(:style=>:exploded) do |context,tag,attrs|
+                                      ctag = capitalize_local_name(tag)
+                                      cattrs = Hash[attrs.map{|n,v| [capitalize_local_name(n), v]}]
+                                      [ctag, cattrs]
+                                    end ).sexp
+                                        
+        rsxml.should ==
+          [["Foo", "a", "http://a.com/a"], {"Bar"=>"10", "Baz"=>"20"}]
+
+      end
     end
   end
 
