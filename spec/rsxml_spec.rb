@@ -183,7 +183,7 @@ describe Rsxml do
       rsxml.should == org_no_ns
     end
 
-    it "should return exploded namespaces if :compact is false when parsing a fragment" do
+    it "should return exploded namespaces if :style=>:exploded when parsing a fragment" do
       xml = '<foofoo foo:bar="1" foo:baz="baz"></foofoo>'
       rsxml = Rsxml.to_rsxml(xml, :ns=>{:foo=>"http://foo.com/foo", ""=>"http://baz.com/baz"}, :style=>:exploded)
 

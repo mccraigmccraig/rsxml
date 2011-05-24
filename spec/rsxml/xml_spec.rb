@@ -7,6 +7,7 @@ module Rsxml
 
     it "should wrap a fragment in a document with namespace declarations if there are ns prefixes" do
     end
+
   end
 
   describe "unwrap_fragment" do
@@ -17,6 +18,14 @@ module Rsxml
     end
 
     it "should throw an exception if it unwraps and there is more than one child" do
+    end
+
+    it "should return a node with no namespace definitions" do
+      root = Xml.unwrap_fragment(Nokogiri::XML(Xml.wrap_fragment("<foo:bar/>", {"foo"=>"http://foo.com/foo"})).children.first)
+      root.namespace_definitions.should == []
+      root.name.should == "bar"
+      root.namespace.prefix.should == "foo"
+      root.namespace.href.should == "http://foo.com/foo"
     end
   end
 

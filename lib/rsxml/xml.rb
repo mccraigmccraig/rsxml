@@ -49,12 +49,19 @@ module Rsxml
       [eelement, eattrs]
     end
 
+    def namespace_bindings_from_defs(ns_defs)
+      (ns_defs||[]).reduce({}) do |h,ns_def|
+        h[ns_def.prefix||""] = ns_def.href
+        h
+      end
+    end
+
     # pre-order traversal of the Nokogiri Nodes, calling methods on
     # the visitor with each Node
     def traverse(element, visitor, context = Visitor::Context.new)
       eelement, eattrs = explode_element(element)
 
-      _, ns_bindings = Rsxml::Namespace.partition_namespace_decls(element.namespaces)
+      ns_bindings = namespace_bindings_from_defs(element.namespace_definitions)
       context.ns_stack.push(ns_bindings)
 
       begin
