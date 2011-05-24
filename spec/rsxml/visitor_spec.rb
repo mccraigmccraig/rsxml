@@ -29,17 +29,6 @@ module Rsxml
   end
 
   describe Visitor::BuildRsxmlVisitor do
-    describe "partition_namespace_decls" do
-      it "should remove default and prefixed namespace decls from exploded attributes" do
-        Visitor::BuildRsxmlVisitor.new.partition_namespace_decls({"xmlns"=>"http://default.com/default",
-                                                                   ["foo", "xmlns"]=>"http://foo.com/foo",
-                                                                   ["bar", "foo", "http://foo.com/foo"]=>"barbar",
-                                                                   "baz"=>"bazbaz"}).should ==
-          {["bar", "foo", "http://foo.com/foo"]=>"barbar",
-          "baz"=>"bazbaz"}
-      end
-    end
-
     describe "compact_qname" do
       it "should compact exploded qnames" do
         Visitor::BuildRsxmlVisitor.new.compact_qname(["foo", "bar", "http://bar.com/bar"]).should ==

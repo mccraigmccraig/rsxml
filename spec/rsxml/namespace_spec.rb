@@ -225,6 +225,13 @@ module Rsxml
     end
   end
 
+  describe "namespace_attributes" do
+    it "should produce a Hash of namespace declaration attributes" do
+      Namespace.namespace_attributes({""=>"http://default.com/default", "foo"=>"http://foo.com/foo"}).should == 
+        {"xmlns"=>"http://default.com/default", "xmlns:foo"=>"http://foo.com/foo"}
+    end
+  end
+
   describe "non_ns_attrs_ns_bindings" do
     it "should extract non-ns attributes and explicit namespace bindings" do
       Namespace.non_ns_attrs_ns_bindings([{"foo"=>"http://foo.com/foo"}], 

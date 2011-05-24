@@ -149,6 +149,18 @@ module Rsxml
            end]
     end
 
+    # produces a Hash of compact namespace attributes from a
+    # Hash of namespace bindings
+    def namespace_attributes(ns)
+      Hash[ns.map do |prefix, uri|
+             if prefix==""
+               ["xmlns", uri]
+             else
+               [["xmlns", prefix].join(":"), uri]
+             end
+           end]
+    end
+
     # merges two sets of namespace bindings, raising error on clash
     def merge_namespace_bindings(ns1, ns2)
       m = ns1.clone

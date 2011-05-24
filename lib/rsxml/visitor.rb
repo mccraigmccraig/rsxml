@@ -40,11 +40,13 @@ module Rsxml
         @xml = xml_builder || Builder::XmlMarkup.new
       end
 
-      def tag(context, name, attrs)
+      def tag(context, name, attrs, ns_decls)
         qname = Namespace::compact_qname(context.ns_stack, name)
         qattrs = Namespace::compact_attr_qnames(context.ns_stack, attrs)
+        ns_attrs = Namespace::namespace_attributes(ns_decls)
+        attrs = qattrs.merge(ns_attrs)
 
-        xml.__send__(qname, qattrs) do
+        xml.__send__(qname, attrs) do
           yield
         end
       end
@@ -85,24 +87,7 @@ module Rsxml
         Hash[attrs.map{|qname,value| [compact_qname(qname), value]}]
       end
 
-      # split exploded attributes into attrs and namespace related attrs
-      def partition_namespace_decls(attrs)
-        attrs = []
-        namespaces = []
-        attrs.each do |qname,value| 
-          local_name, prefix, uri = qname
-          if prefix=="xmlns" || (prefix==nil && local_name=="xmlns")
-            namespaces << [qname, uri]
-          else
-            attrs << [qname,value]
-          end
-        end
-        [Hash[attrs], Hash[namespaces]]
-      end
-
-      def tag(context, tag, attrs)
-
-        attrs, ns_attrs = partition_namespace_decls(attrs)
+      def tag(context, tag, attrs, ns_decls)
 
         tag, attrs = tag_transformer.call(context, tag, attrs) if tag_transformer
 
@@ -110,8 +95,9 @@ module Rsxml
         if opts[:style] == :xml
           tag = compact_qname(tag)
           attrs = compact_attr_names(attrs)
+          ns_attrs = Namespace.namespace_attributes(ns_decls)
+          attrs = attrs.merge(ns_attrs)
         elsif opts[:style] == :exploded
-          attrs = partition_namespace_decls(attrs)
         end
         
         el = [tag, (attrs if attrs.size>0)].compact
