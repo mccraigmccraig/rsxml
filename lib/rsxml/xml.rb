@@ -49,6 +49,8 @@ module Rsxml
       [eelement, eattrs]
     end
 
+    # give a list of <tt>Nokogiri::XML::Namespace</tt> definitions, produce
+    # a Hash <tt>{prefix=>uri}</tt> of namespace bindings
     def namespace_bindings_from_defs(ns_defs)
       (ns_defs||[]).reduce({}) do |h,ns_def|
         h[ns_def.prefix||""] = ns_def.href
@@ -59,10 +61,10 @@ module Rsxml
     # pre-order traversal of the Nokogiri Nodes, calling methods on
     # the visitor with each Node
     def traverse(element, visitor, context = Visitor::Context.new)
-      eelement, eattrs = explode_element(element)
-
       ns_bindings = namespace_bindings_from_defs(element.namespace_definitions)
       context.ns_stack.push(ns_bindings)
+
+      eelement, eattrs = explode_element(element)
 
       begin
         visitor.tag(context, eelement, eattrs, ns_bindings) do

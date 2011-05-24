@@ -17,7 +17,7 @@ module Rsxml
 
       begin
         visitor.tag(context, etag, eattrs, ns_bindings) do
-          context.push_node([etag, eattrs])
+          context.push_node([etag, eattrs, ns_bindings])
           begin
             children.each_with_index do |child, i|
               if child.is_a?(Array)
