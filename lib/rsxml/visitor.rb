@@ -64,17 +64,17 @@ module Rsxml
       attr_reader :sexp
       attr_reader :cursor_stack 
       attr_reader :opts
-      attr_reader :tag_transformer
+      attr_reader :element_transformer
 
       # The <tt>:style</tt> option specifies how the Rsxml is to be produced
       #  :xml style is with compact <tt>"prefix:local_name"</tt> Strings for QNames, and namespace declaration attributes
       #  :exploded style is with <tt>[local_name, prefix, uri]</tt> triples for QNames, and no namespace declaration attributes
       OPTS = {:style=>[:xml, :exploded]}
 
-      def initialize(opts=nil, &tag_transformer)
+      def initialize(opts=nil, &element_transformer)
         @opts = Util.check_opts(OPTS, opts) 
         @cursor_stack = []
-        @tag_transformer = tag_transformer
+        @element_transformer = element_transformer
       end
 
       def compact_qname(qname)
@@ -87,20 +87,20 @@ module Rsxml
         Hash[attrs.map{|qname,value| [compact_qname(qname), value]}]
       end
 
-      def element(context, tag, attrs, ns_decls)
+      def element(context, element_name, attrs, ns_decls)
 
-        tag, attrs = tag_transformer.call(context, tag, attrs) if tag_transformer
+        element_name, attrs = element_transformer.call(context, element_name, attrs) if element_transformer
 
         opts[:style] ||= :exploded
         if opts[:style] == :xml
-          tag = compact_qname(tag)
+          element_name = compact_qname(element_name)
           attrs = compact_attr_names(attrs)
           ns_attrs = Namespace.namespace_attributes(ns_decls)
           attrs = attrs.merge(ns_attrs)
         elsif opts[:style] == :exploded
         end
         
-        el = [tag, (attrs if attrs.size>0)].compact
+        el = [element_name, (attrs if attrs.size>0)].compact
 
         if !cursor_stack.last
           @sexp = el

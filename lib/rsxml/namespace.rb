@@ -110,11 +110,11 @@ module Rsxml
       [Hash[nonns_attrs], Hash[ns_bindings]]
     end
 
-    # extract a Hash of {prefix=>uri} mappings from exploded QName tag and attrs
-    def extract_explicit_namespace_bindings(tag, attrs)
-      tag_local_part, tag_prefix, tag_uri = tag
+    # extract a Hash of {prefix=>uri} mappings from exploded QName element and attrs
+    def extract_explicit_namespace_bindings(element_name, attrs)
+      element_name_local_part, element_name_prefix, element_name_uri = element_name
       ns = {}
-      ns[tag_prefix] = tag_uri if tag_prefix && tag_uri
+      ns[element_name_prefix] = element_name_uri if element_name_prefix && element_name_uri
 
       attrs.each do |name, value|
         attr_local_part, attr_prefix, attr_uri = name
@@ -129,7 +129,7 @@ module Rsxml
     # figure out which explicit namespaces need declaring
     #
     # +ns_stack+ is the stack of namespace bindings
-    # +ns_explicit+ is the explicit refs for a tag
+    # +ns_explicit+ is the explicit refs for a element
     def undeclared_namespace_bindings(ns_stack, ns_explicit)
       Hash[ns_explicit.map do |prefix,uri|
              [prefix, uri] if !find_namespace_uri(ns_stack, prefix, uri)
@@ -171,14 +171,14 @@ module Rsxml
       m
     end
 
-    # given the existing +ns_stack+ of ns bindings, a +tag+ and it's +attributes+,
+    # given the existing +ns_stack+ of ns bindings, a +element_name+ and it's +attributes+,
     # return a pair <tt>[non_ns_attrs, ns_bindings]</tt> containing
     # non-ns related attributes, and namespace bindings for the current element,
-    # both those declared in attributes and declared implicitly through exploded tags
-    def non_ns_attrs_ns_bindings(ns_stack, tag, attrs)
+    # both those declared in attributes and declared implicitly through exploded element names
+    def non_ns_attrs_ns_bindings(ns_stack, element_name, attrs)
       non_ns_attrs, ns_declared = partition_namespace_decls(attrs)
 
-      ns_explicit = extract_explicit_namespace_bindings(tag, attrs)
+      ns_explicit = extract_explicit_namespace_bindings(element_name, attrs)
       ns_undeclared = undeclared_namespace_bindings(ns_stack + [ns_declared], ns_explicit)
       ns_bindings = merge_namespace_bindings(ns_declared, ns_undeclared)
 

@@ -167,7 +167,7 @@ module Rsxml
   end
 
   describe "extract_explicit_namespace_bindings" do
-    it "should extract a hash of explicit namespace bindings from expanded tags" do
+    it "should extract a hash of explicit namespace bindings from expanded QNames" do
       Namespace.extract_explicit_namespace_bindings(["bar", "foo", "http://foo.com/foo"],
                                                     {["baz", "bar", "http://bar.com/bar"]=>"baz",
                                                       ["boo", "", "http://default.com/default"]=>"boo"}).should ==
