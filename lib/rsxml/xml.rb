@@ -67,7 +67,7 @@ module Rsxml
       eelement, eattrs = explode_element(element)
 
       begin
-        visitor.tag(context, eelement, eattrs, ns_bindings) do
+        visitor.element(context, eelement, eattrs, ns_bindings) do
           context.push_node([eelement, eattrs, ns_bindings])
           begin
             element.children.each do |child|

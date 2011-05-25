@@ -45,8 +45,8 @@ module Rsxml
       end
     end
 
-    describe "tag" do
-      it "should append the rsxml tag to the cursor element and yield" do
+    describe "element" do
+      it "should append the rsxml element to the cursor element and yield" do
       end
     end
 

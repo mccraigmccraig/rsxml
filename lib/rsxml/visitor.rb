@@ -40,7 +40,7 @@ module Rsxml
         @xml = xml_builder || Builder::XmlMarkup.new
       end
 
-      def tag(context, name, attrs, ns_decls)
+      def element(context, name, attrs, ns_decls)
         qname = Namespace::compact_qname(context.ns_stack, name)
         qattrs = Namespace::compact_attr_qnames(context.ns_stack, attrs)
         ns_attrs = Namespace::namespace_attributes(ns_decls)
@@ -87,7 +87,7 @@ module Rsxml
         Hash[attrs.map{|qname,value| [compact_qname(qname), value]}]
       end
 
-      def tag(context, tag, attrs, ns_decls)
+      def element(context, tag, attrs, ns_decls)
 
         tag, attrs = tag_transformer.call(context, tag, attrs) if tag_transformer
 
