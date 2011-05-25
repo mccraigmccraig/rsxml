@@ -67,8 +67,8 @@ module Rsxml
       attr_reader :element_transformer
 
       # The <tt>:style</tt> option specifies how the Rsxml is to be produced
-      #  :xml style is with compact <tt>"prefix:local_name"</tt> Strings for QNames, and namespace declaration attributes
-      #  :exploded style is with <tt>[local_name, prefix, uri]</tt> triples for QNames, and no namespace declaration attributes
+      #  :xml style is with compact <tt>"prefix:local_part"</tt> Strings for QNames, and namespace declaration attributes
+      #  :exploded style is with <tt>[local_part, prefix, uri]</tt> triples for QNames, and no namespace declaration attributes
       OPTS = {:style=>[:xml, :exploded]}
 
       def initialize(opts=nil, &element_transformer)
@@ -78,9 +78,9 @@ module Rsxml
       end
 
       def compact_qname(qname)
-        local_name, prefix, uri = qname
+        local_part, prefix, uri = qname
 
-        [prefix, local_name].map{|s| (!s || s.empty?) ? nil : s}.compact.join(":")
+        [prefix, local_part].map{|s| (!s || s.empty?) ? nil : s}.compact.join(":")
       end
 
       def compact_attr_names(attrs)

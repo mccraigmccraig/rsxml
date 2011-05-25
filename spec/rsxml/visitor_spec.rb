@@ -68,20 +68,20 @@ module Rsxml
     end
 
     describe "element_transformer" do
-      def capitalize_local_name(qname)
-        local_name, prefix, uri = qname
+      def capitalize_local_part(qname)
+        local_part, prefix, uri = qname
         if uri
-          [local_name.capitalize, prefix, uri]
+          [local_part.capitalize, prefix, uri]
         else
-          local_name.capitalize
+          local_part.capitalize
         end
       end
 
       it "should call a element_transformer block to transform element_names and attrs" do
         root = Nokogiri::XML('<foo bar="10" baz="20"></foo>').children.first
         rsxml = Rsxml::Xml.traverse(root, Visitor::BuildRsxmlVisitor.new do |context,element_name,attrs|
-                                      celement_name = capitalize_local_name(element_name)
-                                      cattrs = Hash[attrs.map{|n,v| [capitalize_local_name(n), v]}]
+                                      celement_name = capitalize_local_part(element_name)
+                                      cattrs = Hash[attrs.map{|n,v| [capitalize_local_part(n), v]}]
                                       [celement_name, cattrs]
                                     end ).sexp
                                         
@@ -90,8 +90,8 @@ module Rsxml
 
         root = Nokogiri::XML('<a:foo bar="10" baz="20" xmlns:a="http://a.com/a"></a:foo>').children.first
         rsxml = Rsxml::Xml.traverse(root, Visitor::BuildRsxmlVisitor.new(:style=>:exploded) do |context,element_name,attrs|
-                                      celement_name = capitalize_local_name(element_name)
-                                      cattrs = Hash[attrs.map{|n,v| [capitalize_local_name(n), v]}]
+                                      celement_name = capitalize_local_part(element_name)
+                                      cattrs = Hash[attrs.map{|n,v| [capitalize_local_part(n), v]}]
                                       [celement_name, cattrs]
                                     end ).sexp
                                         

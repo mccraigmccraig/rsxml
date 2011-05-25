@@ -13,9 +13,9 @@ module Rsxml
     def explode_attr_qnames(ns_stack, attrs)
       Hash[attrs.map do |name, value|
              uq_name = explode_qname(ns_stack, name, true)
-             local_name, prefix, uri = uq_name
+             local_part, prefix, uri = uq_name
              if !prefix || prefix==""
-               [local_name, value]
+               [local_part, value]
              else
                [uq_name, value]
              end

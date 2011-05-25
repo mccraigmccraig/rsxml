@@ -37,7 +37,7 @@ module Rsxml
       Xml.explode_node(node).should == "foo"
     end
 
-    it "should return the [local_name, prefix, uri] triple if there is a namespace" do
+    it "should return the [local_part, prefix, uri] triple if there is a namespace" do
       node = Object.new
       stub(node).name{"foo"}
       namespace = Object.new
@@ -47,7 +47,7 @@ module Rsxml
       Xml.explode_node(node).should == ["foo", "bar", "http://bar.com/bar"]
     end
 
-    it "should return a [local_name, "", uri] triple if there is a default namespace" do
+    it "should return a [local_part, "", uri] triple if there is a default namespace" do
       node = Object.new
       stub(node).name{"foo"}
       namespace = Object.new

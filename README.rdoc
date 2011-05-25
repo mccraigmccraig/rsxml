@@ -27,7 +27,7 @@ It is easy to convert XML docuemnts to Rsxml representation and back again :
 
 XML namespaces are dealt with straightforwardly. When an XML document is converted to Rsxml, namespaces are preserved, and you can specify namespaces in an Rsxml structure in two ways
 * using QName prefixes and declarative attributes, exactly as with XML
-* using exploded QNames consisting of <tt>[local_name, prefix, uri]</tt> triples and <tt>[local_name, prefix]</tt> pairs
+* using exploded QNames consisting of <tt>[local_part, prefix, uri]</tt> triples and <tt>[local_part, prefix]</tt> pairs
 
 === Converting to Rsxml
 
@@ -44,7 +44,7 @@ prefixed QNames, just as in XML
 ==== <tt>:exploded</tt> style
 
 In <tt>:exploded</tt> style namespaces are not declared using attributes, and QNames are specified
-using <tt>[local_name, prefix, uri]</tt> triples
+using <tt>[local_part, prefix, uri]</tt> triples
 
  Rsxml.to_rsxml('<foo:foofoo xmlns:foo="http://foo.com/foo" foo:bar="barbar"/>', :style=>:exploded)
    => [["foofoo", "foo", "http://foo.com/foo"], {["bar", "foo", "http://foo.com/foo"]=>"barbar"}]

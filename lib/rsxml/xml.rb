@@ -37,7 +37,7 @@ module Rsxml
     end
 
     # given a <tt>Nokogiri::XML::Element</tt> in +element+ , produce
-    # a <tt>[[local_name, prefix, namespace], {[local_name, prefix, namespace]=>value}</tt>
+    # a <tt>[[local_part, prefix, namespace], {[local_part, prefix, namespace]=>value}</tt>
     # pair of exploded element name and attributes with exploded names
     def explode_element(element)
       eelement = explode_node(element)
