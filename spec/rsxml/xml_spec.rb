@@ -69,6 +69,21 @@ module Rsxml
     end
   end
 
+  describe "namespace_bindings_from_defs" do
+    it "should produce a hash of {prefix=>uri} bindings from a list of Nokogiri::XML::Namespace" do
+      default_def = Object.new
+      mock(default_def).prefix{nil}
+      mock(default_def).href{"http://default.com/default"}
+
+      foo_def = Object.new
+      mock(foo_def).prefix{"foo"}
+      mock(foo_def).href{"http://foo.com/foo"}
+
+      Xml.namespace_bindings_from_defs([default_def, foo_def]).should ==
+        {"foo"=>"http://foo.com/foo", ""=>"http://default.com/default"}
+    end
+  end
+
   describe "traverse" do
   end
 
