@@ -3,6 +3,9 @@ require File.expand_path("../../spec_helper", __FILE__)
 module Rsxml
   describe "traverse" do
     it "should call the element function on the visitor" do
+      visitor = Visitor::MockVisitor.new([[:element, :_, "foo", {}, {}]])
+      Sexp.traverse([:foo], visitor)
+      visitor.__finalize__
     end
   end
 

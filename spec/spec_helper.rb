@@ -6,6 +6,7 @@ require 'spec/autorun'
 require 'rr'
 require 'nokogiri'
 require 'rsxml'
+require 'rsxml/mock_visitor'
 
 Spec::Runner.configure do |config|
   config.mock_with RR::Adapters::Rspec
