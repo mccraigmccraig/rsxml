@@ -68,20 +68,14 @@ module Rsxml
 
       begin
         visitor.element(context, eelement, eattrs, ns_bindings) do
-          context.push_node([eelement, eattrs, ns_bindings])
-          begin
-            element.children.each do |child|
-              if child.element?
-                traverse(child, visitor, context)
-              elsif child.text?
-                visitor.text(context, child.content)
-                context.processed_node(child.content)
-              else
-                Rsxml.log{|logger| logger.warn("unknown Nokogiri Node type: #{child.inspect}")}
-              end
+          element.children.each do |child|
+            if child.element?
+              traverse(child, visitor, context)
+            elsif child.text?
+              visitor.text(context, child.content)
+            else
+              Rsxml.log{|logger| logger.warn("unknown Nokogiri Node type: #{child.inspect}")}
             end
-          ensure
-            context.pop_node
           end
         end
       ensure

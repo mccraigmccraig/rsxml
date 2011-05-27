@@ -17,21 +17,14 @@ module Rsxml
 
       begin
         visitor.element(context, eelement_name, eattrs, ns_bindings) do
-          context.push_node([eelement_name, eattrs, ns_bindings])
-          begin
-            children.each_with_index do |child, i|
-              if child.is_a?(Array)
-                traverse(child, visitor, context)
-              else
-                visitor.text(context, child)
-                context.processed_node(child)
-              end
+          children.each_with_index do |child, i|
+            if child.is_a?(Array)
+              traverse(child, visitor, context)
+            else
+              visitor.text(context, child)
             end
-          ensure
-            context.pop_node
           end
         end
-
       ensure
         context.ns_stack.pop
       end
