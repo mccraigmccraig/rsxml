@@ -6,7 +6,7 @@ Why would you want to do this ? Well, s-expressions can be == compared natively 
 and editors indent them nicely when embedded in code. These features make them very suitable for writing readable
 XML generation code and readable tests for XML generating code
 
-Rsxml uses Nokogiri[http://nokogiri.org/] for parsing XML, and Builder[http://builder.rubyforge.org/] to generate it. Rsxml is not intended to be a feature complete XML representation : It does not attempt to represent PIs, CDATA etc, but it does make it very easy to use and generate straightforward XML documents from Ruby
+Rsxml uses Nokogiri[http://nokogiri.org/] for parsing XML, and Builder[http://builder.rubyforge.org/] to generate it. Rsxml is not intended to be a feature complete XML processor : It does not attempt to process PIs, CDATA etc, but it does make it very easy to use and generate straightforward XML documents from Ruby
 
 Rsxml represents XML documents as s-expressions thus :
 
@@ -25,7 +25,7 @@ It is easy to convert XML docuemnts to Rsxml representation and back again :
 
 === Namespaces
 
-XML namespaces are dealt with straightforwardly. When an XML document is converted to Rsxml, namespaces are preserved, and you can specify namespaces in an Rsxml structure in two ways
+XML namespaces are dealt with straightforwardly. When an XML document is converted to Rsxml, namespaces are preserved, and you can specify namespaces in an Rsxml structure in two ways, which can be freely mixed
 * using QName prefixes and declarative attributes, exactly as with XML
 * using exploded QNames consisting of <tt>[local_part, prefix, uri]</tt> triples and <tt>[local_part, prefix]</tt> pairs
 
@@ -68,6 +68,18 @@ Fragments can be generated similarly :
 
  Rsxml.to_xml(["foo:foofoo", {"foo:bar"=>"barbar"}], :ns=>{"foo"=>"http://foo.com/foo"})
    => '<foo:foofoo foo:bar="barbar"></foo:foofoo>'
+
+== Visitors
+
+<tt>Rsxml.to_rsxml</tt> and <tt>Rsxml.to_xml</tt> are implemented with a simple Visitor pattern over the XML document structure. <tt>Rsxml::Sexp.traverse()</tt> traverses a Rsxml s-expression representation of an XML document and <tt>Rsxml::Xml.traverse()</tt> traverses a Nokogiri Node tree. The Visitor receives a
+
+ text(context, text)
+
+invocation for each text node, and an
+
+ element(context, name, attrs, ns_decls)
+
+method invocation for each element. If namespaces are used, element and attribute names in the <tt>element</tt> method invocations are exploded <tt>[local_part, prefix, uri]</tt> triples. The attributes are presented as a <tt>{name=>value}</tt> +Hash+ which contains no namespace-related attributes. Any namespace declarations for the element are provided as the <tt>{prefix=>uri}</tt> +ns_decls+ +Hash+. Namespace prefixes, URIs and declaration attributes are cleanly separated in this API, so it is easy for Visitor implementations to correctly process XML documents with namespaces
 
 == Install
 
