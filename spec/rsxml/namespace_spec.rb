@@ -22,11 +22,26 @@ module Rsxml
   end
 
   describe "explode_qname" do
-    it "should do nothing to an array with more than one element" do
+    it "should do nothing to an array with an exploded name" do
       Namespace.explode_qname([], ["bar", "foo", "http://foo.com/foo"]).should ==
         ["bar", "foo", "http://foo.com/foo"]
-      Namespace.explode_qname([], ["bar", "foo"]).should ==
-        ["bar", "foo"]
+    end
+
+    it "should fill in the uri if a bound prefix with no uri is given" do
+      Namespace.explode_qname([{"foo"=>"http://foo.com/foo"}], ["bar", "foo"]).should ==
+        ["bar", "foo", "http://foo.com/foo"]
+    end
+
+    it "should raise an exception if an unbound prefix and no uri is given" do
+      lambda{
+        Namespace.explode_qname([], ["bar", "foo"])
+      }.should raise_error(/not bound/)
+    end
+
+    it "should raise an execption if a prefix and uri are given which conflict with ns bindings" do
+      lambda{
+        Namespace.explode_qname([{"foo"=>"http://foo.com/foo"}], ["bar", "foo", "http://bar.com/bar"])
+      }.should raise_error
     end
 
     it "should return the first element of an array with only the first non-nil element" do

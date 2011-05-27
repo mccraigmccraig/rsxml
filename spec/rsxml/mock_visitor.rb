@@ -14,6 +14,7 @@ module Rsxml
 
       def __check_arg_expectation__(arg_xp, arg)
         return true if arg_xp == :_
+        return arg_xp.call(arg) if arg_xp.is_a?(Proc)
         return arg_xp == arg
       end
 

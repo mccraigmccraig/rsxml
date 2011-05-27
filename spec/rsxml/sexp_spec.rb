@@ -7,6 +7,39 @@ module Rsxml
       Sexp.traverse([:foo], visitor)
       visitor.__finalize__
     end
+
+    it "should call the element function on the visitor with exploded element and attributes qnames" do
+      visitor = Visitor::MockVisitor.new([[:element, :_, 
+                                           [:foofoo, "foo", "http://foo.com/foo"], 
+                                           {["bar", "foo", "http://foo.com/foo"]=>"barbar"}, 
+                                           {"foo"=>"http://foo.com/foo"}]])
+      Sexp.traverse([[:foofoo, "foo"], {["bar", "foo", "http://foo.com/foo"]=>"barbar"}], visitor)
+      visitor.__finalize__
+    end
+
+    it "should call the test function on the visitor with textual content" do
+      visitor = Visitor::MockVisitor.new([[:element, :_, 
+                                           [:foofoo, "foo", "http://foo.com/foo"], 
+                                           {["bar", "foo", "http://foo.com/foo"]=>"barbar"}, 
+                                           {"foo"=>"http://foo.com/foo"}],
+                                          [:text, :_, "boohoo"]])
+      Sexp.traverse([[:foofoo, "foo"], {["bar", "foo", "http://foo.com/foo"]=>"barbar"}, "boohoo"], visitor)
+      visitor.__finalize__
+    end
+
+    it "should call the element function in document order for each element in a hierarchic doc" do
+      visitor = Visitor::MockVisitor.new([[:element, :_, 
+                                           [:foofoo, "foo", "http://foo.com/foo"], 
+                                           {["bar", "foo", "http://foo.com/foo"]=>"barbar"}, 
+                                           {"foo"=>"http://foo.com/foo"}],
+                                          [:element, :_,
+                                           [:barbar, "foo", "http://foo.com/foo"],
+                                           {["baz", "foo", "http://foo.com/foo"]=>"bazbaz"},
+                                           {}]])
+      Sexp.traverse([[:foofoo, "foo"], {["bar", "foo", "http://foo.com/foo"]=>"barbar"},
+                     [[:barbar, "foo"], {["baz", "foo"]=>"bazbaz"}]], visitor)
+      visitor.__finalize__
+    end
   end
 
   describe "decompose_sexp" do

@@ -39,15 +39,22 @@ module Rsxml
       end
     end
 
-    # split a QName into [LocalPart, prefix, URI] triple
+    # split a QName into [LocalPart, prefix, URI] triple. fill out
+    # missing uris if necessary, and check QName is well specified
     def explode_qname(ns_stack, qname, attr=false)
       if qname.is_a?(Array)
-        if qname.length>1 && !qname[1].nil?
-          return qname
-        elsif qname.length>1 && qname[1].nil? && !qname[2].nil?
-          raise "invalid name: #{qname.inspect}"
+        local_part, prefix, uri = qname
+        if uri
+          raise "invalid name: #{qname.inspect}" if !prefix
+          bound_uri = find_namespace_uri(ns_stack, prefix)
+          raise "namespace conflict: prefix '#{prefix}' refers to '#{uri}' and '#{bound_uri}'" if bound_uri && uri != bound_uri
+          return [local_part, prefix, uri]
+        elsif prefix
+          uri = find_namespace_uri(ns_stack, prefix)
+          raise "namespace prefix not bound: '#{prefix}'" if !uri
+          return [local_part, prefix, uri]
         else
-          return qname[0]
+          return local_part
         end
       end
 
