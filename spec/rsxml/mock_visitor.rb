@@ -28,11 +28,14 @@ module Rsxml
       end
 
       def __finalize__
-        raise "missing invocations: #{expectations.map{|xp| __format_expectation(xp)}.join('\n')}" if expectations && expectations.length>1
+        raise "missing invocations: #{expectations.map{|xp_method, *xp_args| __format_invocation__(xp_method, xp_args)}.join('\n')}" if expectations && expectations.length>0
       end
 
-      def method_missing(method, *args)
+      # check that there is an expectation for the invoked method, and if 
+      # a block is given yield to that block
+      def method_missing(method, *args, &block)
         __check_expectation__(method, args)
+        block.call if block
       end
 
     end
