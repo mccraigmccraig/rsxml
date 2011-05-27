@@ -85,6 +85,7 @@ module Rsxml
   end
 
   describe "traverse" do
+    # tests moved to visitor_spec... done in parallel with Sexp traverse tests
   end
 
 end

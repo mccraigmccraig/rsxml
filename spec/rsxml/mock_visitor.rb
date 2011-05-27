@@ -5,7 +5,7 @@ module Rsxml
       attr_reader :expectations
       
       def initialize(expectations)
-        @expectations = expectations
+        @expectations = expectations.clone
       end
 
       def __format_invocation__(method, args)

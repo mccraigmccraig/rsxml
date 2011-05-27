@@ -1,6 +1,103 @@
 require File.expand_path("../../spec_helper", __FILE__)
 
 module Rsxml
+  # tests traverse methods on both Xml and Sexp together : they should produce identical visitation
+  # patterns
+  describe "traverse" do
+    def check_traverse(expectations, xml, sexp)
+      xml_visitor = Visitor::MockVisitor.new(expectations)
+      xml_root = Nokogiri::XML(xml).children.first
+      Xml.traverse(xml_root, xml_visitor)
+      xml_visitor.__finalize__
+      
+      sexp_visitor = Visitor::MockVisitor.new(expectations)
+      Sexp.traverse(sexp, sexp_visitor)
+      sexp_visitor.__finalize__
+    end
+
+    it "should call the element function on the visitor" do
+      check_traverse([[:element, :_, "foo", {"bar"=>"barbar"}, {}]],
+                     '<foo bar="barbar"/>',
+                     [:foo, {"bar"=>"barbar"}])
+    end
+
+    it "should call the element function on the visitor with exploded element and attributes qnames" do
+      check_traverse([[:element, :_, 
+                       ["foofoo", "foo", "http://foo.com/foo"], 
+                       {["bar", "foo", "http://foo.com/foo"]=>"barbar"}, 
+                       {"foo"=>"http://foo.com/foo"}]],
+                     '<foo:foofoo foo:bar="barbar" xmlns:foo="http://foo.com/foo"/>',
+                     [["foofoo", "foo"], {["bar", "foo", "http://foo.com/foo"]=>"barbar"}])
+    end
+
+    it "should call the test function on the visitor with textual content" do
+      check_traverse([[:element, :_, 
+                       ["foofoo", "foo", "http://foo.com/foo"], 
+                       {["bar", "foo", "http://foo.com/foo"]=>"barbar"}, 
+                       {"foo"=>"http://foo.com/foo"}],
+                      [:text, :_, "boohoo"]],
+                     '<foo:foofoo foo:bar="barbar" xmlns:foo="http://foo.com/foo">boohoo</foo:foofoo>',
+                     [["foofoo", "foo"], {["bar", "foo", "http://foo.com/foo"]=>"barbar"}, "boohoo"])
+    end
+
+    it "should call the element function in document order for each element in a hierarchic doc" do
+      check_traverse([[:element, :_, 
+                       ["foofoo", "foo", "http://foo.com/foo"], 
+                       {["bar", "foo", "http://foo.com/foo"]=>"barbar"}, 
+                       {"foo"=>"http://foo.com/foo"}],
+                      [:element, :_,
+                       ["barbar", "foo", "http://foo.com/foo"],
+                       {["baz", "foo", "http://foo.com/foo"]=>"bazbaz"},
+                       {}]],
+                     '<foo:foofoo foo:bar="barbar" xmlns:foo="http://foo.com/foo"><foo:barbar foo:baz="bazbaz"/></foo:foofoo>',
+                     [["foofoo", "foo"], {["bar", "foo", "http://foo.com/foo"]=>"barbar"},
+                      [["barbar", "foo"], {["baz", "foo"]=>"bazbaz"}]])
+    end
+
+    it "should call the element/text functions in a mixed document in document order" do
+      check_traverse([[:element, :_, 
+                       ["foofoo", "foo", "http://foo.com/foo"], 
+                       {["bar", "foo", "http://foo.com/foo"]=>"barbar"}, 
+                       {"foo"=>"http://foo.com/foo"}],
+                      [:element, :_,
+                       ["barbar", "foo", "http://foo.com/foo"],
+                       {["baz", "foo", "http://foo.com/foo"]=>"bazbaz"},
+                       {}],
+                      [:text, :_, "sometext"],
+                      [:element, :_, "boo", {"hoo"=>"hoohoo"}, {"zoo"=>"http://zoo.com/zoo"}],
+                      [:element, :_, ["bozo", "zoo", "http://zoo.com/zoo"], {}, {}]
+                     ],
+                     '<foo:foofoo foo:bar="barbar" xmlns:foo="http://foo.com/foo"><foo:barbar foo:baz="bazbaz"/>sometext<boo hoo="hoohoo" xmlns:zoo="http://zoo.com/zoo"><zoo:bozo/></boo></foo:foofoo>',
+                     [["foofoo", "foo"], {["bar", "foo", "http://foo.com/foo"]=>"barbar"},
+                      [["barbar", "foo"], {["baz", "foo"]=>"bazbaz"}],
+                      "sometext",
+                      ["boo", {"hoo"=>"hoohoo", "xmlns:zoo"=>"http://zoo.com/zoo"},
+                       ["zoo:bozo"]]])
+    end
+
+    it "should work the same with compact sexp representations" do
+      check_traverse([[:element, :_, 
+                       ["foofoo", "foo", "http://foo.com/foo"], 
+                       {["bar", "foo", "http://foo.com/foo"]=>"barbar"}, 
+                       {"foo"=>"http://foo.com/foo"}],
+                      [:element, :_,
+                       ["barbar", "foo", "http://foo.com/foo"],
+                       {["baz", "foo", "http://foo.com/foo"]=>"bazbaz"},
+                       {}],
+                      [:text, :_, "sometext"],
+                      [:element, :_, "boo", {"hoo"=>"hoohoo"}, {"zoo"=>"http://zoo.com/zoo"}],
+                      [:element, :_, ["bozo", "zoo", "http://zoo.com/zoo"], {}, {}]
+                     ],
+                     '<foo:foofoo foo:bar="barbar" xmlns:foo="http://foo.com/foo"><foo:barbar foo:baz="bazbaz"/>sometext<boo hoo="hoohoo" xmlns:zoo="http://zoo.com/zoo"><zoo:bozo/></boo></foo:foofoo>',
+                     ["foo:foofoo", {"foo:bar"=>"barbar", "xmlns:foo"=>"http://foo.com/foo"},
+                      ["foo:barbar", {"foo:baz"=>"bazbaz"}],
+                      "sometext",
+                      ["boo", {"hoo"=>"hoohoo", "xmlns:zoo"=>"http://zoo.com/zoo"},
+                       ["zoo:bozo"]]])
+    end
+
+  end
+
   describe Visitor::WriteXmlVisitor do
     it "should write single element xml" do
       Sexp::traverse(["item"], Visitor::WriteXmlVisitor.new).to_s.should == "<item></item>"
