@@ -76,7 +76,6 @@ module Rsxml
           attrs = compact_attr_names(attrs)
           ns_attrs = Namespace.namespace_attributes(ns_decls)
           attrs = attrs.merge(ns_attrs)
-        elsif opts[:style] == :exploded
         end
         
         el = [element_name, (attrs if attrs.size>0)].compact
