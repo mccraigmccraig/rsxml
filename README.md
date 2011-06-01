@@ -1,4 +1,4 @@
-rsxml
+rsxml [![Build Status](http://travis-ci.org/trampoline/rsxml.png)](http://travis-ci.org/trampoline/rsxml)
 =====
 
 Ruby literal representation of XML documents in the style of [SXML](http://en.wikipedia.org/wiki/SXML)
