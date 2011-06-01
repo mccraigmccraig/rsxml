@@ -16,7 +16,7 @@ Jeweler::Tasks.new do |gem|
   gem.add_runtime_dependency "nokogiri", ">= 1.4.4"
   gem.add_development_dependency "rspec", "~> 1.3.1"
   gem.add_development_dependency "rr", ">= 0.10.5"
-  gem.add_development_dependency "jeweler", "~> 1.5.2"
+  gem.add_development_dependency "jeweler", ">= 1.5.2"
   gem.add_development_dependency "rcov", ">= 0"
 end
 Jeweler::RubygemsDotOrgTasks.new
