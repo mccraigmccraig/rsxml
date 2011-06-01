@@ -1,6 +1,17 @@
 require 'rubygems'
 require 'rake'
 
+begin
+  require "yard"
+
+  YARD::Rake::YardocTask.new do |t|
+    t.files = ["README.md", "lib/**/*.rb"]
+  end
+rescue LoadError
+  desc message = %{"gem install yard" to generate documentation}
+  task("yard") { abort message }
+end
+
 require 'jeweler'
 Jeweler::Tasks.new do |gem|
   # gem is a Gem::Specification... see http://docs.rubygems.org/read/chapter/20 for more options
@@ -18,6 +29,7 @@ Jeweler::Tasks.new do |gem|
   gem.add_development_dependency "rr", ">= 0.10.5"
   gem.add_development_dependency "jeweler", ">= 1.5.2"
   gem.add_development_dependency "rcov", ">= 0"
+  gem.add_development_dependency "yard", ">= 0.7.1"
 end
 Jeweler::RubygemsDotOrgTasks.new
 
@@ -36,13 +48,3 @@ end
 task :spec => :check_dependencies
 
 task :default => :spec
-
-require 'rake/rdoctask'
-Rake::RDocTask.new do |rdoc|
-  version = File.exist?('VERSION') ? File.read('VERSION') : ""
-
-  rdoc.rdoc_dir = 'rdoc'
-  rdoc.title = "rsxml #{version}"
-  rdoc.rdoc_files.include('README*')
-  rdoc.rdoc_files.include('lib/**/*.rb')
-end
