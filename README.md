@@ -12,18 +12,23 @@ Installation
 Background
 ----------
 
-Rsxml is a Ruby library to translate XML documents into a Ruby literal representation, using Array and Hash literals, and back again
+Rsxml is a Ruby library to translate XML documents into an s-expression style Ruby literal representation, using Array and Hash literals, and back again
 
-Why would you want to do this ? Well, Ruby literals can be == compared natively, are easy to read
-and editors indent them nicely when embedded in code. These features make them nice for writing readable
-XML generation code and readable tests for XML generating code
+Why would you want to do this ? Ruby literals :
+
+* can be == compared natively
+* are easy to read
+* can be indented nicely by editors
+* can be syntax checked and balanced by editors
+
+These features make them nice for writing readable XML generation code and readable tests for XML generating code
 
 Rsxml uses [Nokogiri](http://nokogiri.org/) for parsing XML, and [Builder](http://builder.rubyforge.org/) for generating it. Rsxml is not a feature complete XML processor : It does not attempt to process PIs, CDATA etc, but it does make it very easy to use and generate straightforward XML documents from Ruby
 
 Use
 ---
 
-Rsxml represents XML documents as s-expressions thus :
+Rsxml represents XML documents as s-expressions comprised of Ruby Array and Hash literals, thus :
 
      ["Foo", {"foofoo"=>"10"}, ["Bar", "barbar"], ["Baz"]]
 
