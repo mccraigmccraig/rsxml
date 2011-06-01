@@ -33,6 +33,7 @@ Rsxml represents XML documents as s-expressions comprised of Ruby Array and Hash
      ["Foo", {"foofoo"=>"10"}, ["Bar", "barbar"], ["Baz"]]
 
 represents the XML document :
+
      <Foo foofoo="10"><Bar>barbar</Bar><Baz></Baz></Foo>
 
 It is easy to convert XML docuemnts to Rsxml representation and back again :
@@ -101,7 +102,7 @@ invocation for each text node, and an
 
      element(context, name, attrs, ns_decls)
 
-method invocation for each element. If namespaces are used, element and attribute names in the <tt>element</tt> method invocations are exploded <tt>[local_part, prefix, uri]</tt> triples. The attributes are presented as a <tt>{name=>value}</tt> +Hash+ which contains no namespace-related attributes. Any namespace declarations for the element are provided as the <tt>{prefix=>uri}</tt> +ns_decls+ +Hash+. Namespace prefixes, URIs and declaration attributes are cleanly separated in this API, so it is easy for Visitor implementations to correctly process XML documents with namespaces
+method invocation for each element. If namespaces are used, element and attribute names in the <tt>element</tt> method invocations are exploded <tt>[local_part, prefix, uri]</tt> triples. The attributes are presented as a <tt>{name=>value}</tt> `Hash` which contains no namespace-related attributes. Any namespace declarations for the element are provided as the <tt>{prefix=>uri}</tt> `ns_decls` `Hash`. Namespace prefixes, URIs and declaration attributes are cleanly separated in this API, so it is easy for Visitor implementations to correctly process XML documents with namespaces
 
 Contributing to rsxml
 ---------------------
