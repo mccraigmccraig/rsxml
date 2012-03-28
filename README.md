@@ -118,6 +118,6 @@ Contributing to rsxml
 Copyright
 ---------
 
-Copyright (c) 2011 Trampoline Systems Ltd. See LICENSE.txt for
+Copyright (c) 2012 mccraigmccraig of the clan mccraig. See LICENSE.txt for
 further details.
 
