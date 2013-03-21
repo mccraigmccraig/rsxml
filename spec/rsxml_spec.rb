@@ -124,11 +124,11 @@ describe Rsxml do
       r.namespace.href.should == "http://foo.com/foo"
       r.namespace.prefix.should == "foo"
 
-      r["bar"].should == "1"
+      r["foo:bar"].should == "1"
       r.attributes["bar"].namespace.href.should == "http://foo.com/foo"
       r.attributes["bar"].namespace.prefix.should == "foo"
 
-      r["baz"].should == "baz"
+      r["foo:baz"].should == "baz"
       r.attributes["baz"].namespace.href.should == "http://foo.com/foo"
       r.attributes["baz"].namespace.prefix.should == "foo"
     end
