@@ -1,4 +1,5 @@
 require File.expand_path("../../spec_helper", __FILE__)
+require 'rsxml/util'
 
 module Rsxml
   describe Util do

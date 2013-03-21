@@ -1,4 +1,4 @@
-rsxml [![Build Status](http://travis-ci.org/trampoline/rsxml.png)](http://travis-ci.org/trampoline/rsxml)
+rsxml [![Build Status](https://travis-ci.org/mccraigmccraig/rsxml.png?branch=master)](https://travis-ci.org/mccraigmccraig/rsxml)
 =====
 
 Ruby literal representation of XML documents in the style of [SXML](http://en.wikipedia.org/wiki/SXML)
@@ -62,7 +62,7 @@ In <tt>:xml</tt> style namespaces are declared using attributes, and namespaces 
 `prefix:LocalPart` QNames, as in XML
 
      Rsxml.to_rsxml('<foo:foofoo xmlns:foo="http://foo.com/foo" foo:bar="barbar"/>', :style=>:xml)
-       => ["foo:foofoo", {"foo:bar"=>"barbar", "xmlns:foo"=>"http://foo.com/foo"}] 
+       => ["foo:foofoo", {"foo:bar"=>"barbar", "xmlns:foo"=>"http://foo.com/foo"}]
 
 #### <tt>:exploded</tt> style
 
@@ -85,7 +85,7 @@ XML Fragments, without proper namespace declarations, can be parsed by passing a
 prefix bindings
 
      Rsxml.to_rsxml('<foo:foofoo foo:bar="barbar"/>', :ns=>{"foo"=>"http://foo.com/foo"}, :style=>:xml)
-       => ["foo:foofoo", {"foo:bar"=>"barbar"}] 
+       => ["foo:foofoo", {"foo:bar"=>"barbar"}]
 
 Fragments can be generated similarly :
 
@@ -106,7 +106,7 @@ method invocation for each element. If namespaces are used, element and attribut
 
 Contributing to rsxml
 ---------------------
- 
+
 * Check out the latest master to make sure the feature hasn't been implemented or the bug hasn't been fixed yet
 * Check out the issue tracker to make sure someone already hasn't requested it and/or contributed it
 * Fork the project
@@ -120,4 +120,3 @@ Copyright
 
 Copyright (c) 2012 mccraigmccraig of the clan mccraig. See LICENSE.txt for
 further details.
-

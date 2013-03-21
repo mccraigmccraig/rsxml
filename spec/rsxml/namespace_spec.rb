@@ -1,4 +1,5 @@
 require File.expand_path("../../spec_helper", __FILE__)
+require 'rsxml/namespace'
 
 module Rsxml
   describe "find_namespace_uri" do
@@ -60,7 +61,7 @@ module Rsxml
     end
 
     it "should unqualify an unprefixed name in the default namespace" do
-      Namespace.explode_qname([{""=>"http://foo.com/foo"}], "bar").should == 
+      Namespace.explode_qname([{""=>"http://foo.com/foo"}], "bar").should ==
         ["bar", "", "http://foo.com/foo"]
     end
 
@@ -123,20 +124,20 @@ module Rsxml
 
   describe "compact_qname" do
     it "should produce a qname from a pair or triple" do
-      Namespace.compact_qname([{"foo"=>"http://foo.com/foo"}], 
+      Namespace.compact_qname([{"foo"=>"http://foo.com/foo"}],
                               ["bar", "foo"]).should ==
         "foo:bar"
-      Namespace.compact_qname([{"foo"=>"http://foo.com/foo"}], 
+      Namespace.compact_qname([{"foo"=>"http://foo.com/foo"}],
                               ["bar", "foo", "http://foo.com/foo"]).should ==
         "foo:bar"
     end
 
     it "should produce a qname with default namespace" do
-      Namespace.compact_qname([{""=>"http://foo.com/foo"}], 
+      Namespace.compact_qname([{""=>"http://foo.com/foo"}],
                               ["bar", ""]).should ==
         "bar"
 
-      Namespace.compact_qname([{""=>"http://foo.com/foo"}], 
+      Namespace.compact_qname([{""=>"http://foo.com/foo"}],
                               ["bar", "", "http://foo.com/foo"]).should ==
         "bar"
     end
@@ -153,21 +154,21 @@ module Rsxml
 
     it "should raise an error if a prefix is not bound" do
       lambda {
-        Namespace.compact_qname([], 
+        Namespace.compact_qname([],
                                 ["bar", "foo", "http://foo.com/foo"])
       }.should raise_error(/not bound/)
     end
 
     it "should raise an error if a prefix binding clashes" do
       lambda {
-        Namespace.compact_qname([{"foo"=>"http://foo.com/foo"}], 
+        Namespace.compact_qname([{"foo"=>"http://foo.com/foo"}],
                                 ["bar", "foo", "http://bar.com/bar"])
       }.should raise_error(/'foo' is bound/)
     end
 
     it "should raise an error if default namespace binding clashes" do
       lambda {
-        Namespace.compact_qname([{""=>"http://foo.com/foo"}], 
+        Namespace.compact_qname([{""=>"http://foo.com/foo"}],
                                 ["bar", "", "http://bar.com/bar"])
       }.should raise_error(/'' is bound/)
     end
@@ -235,22 +236,22 @@ module Rsxml
 
   describe "exploded_namespace_declarations" do
     it "should produce unqalified namespaces declarations" do
-      Namespace.exploded_namespace_declarations({""=>"http://default.com/default", "foo"=>"http://foo.com/foo"}).should == 
+      Namespace.exploded_namespace_declarations({""=>"http://default.com/default", "foo"=>"http://foo.com/foo"}).should ==
         {"xmlns"=>"http://default.com/default", ["foo", "xmlns"]=>"http://foo.com/foo"}
     end
   end
 
   describe "namespace_attributes" do
     it "should produce a Hash of namespace declaration attributes" do
-      Namespace.namespace_attributes({""=>"http://default.com/default", "foo"=>"http://foo.com/foo"}).should == 
+      Namespace.namespace_attributes({""=>"http://default.com/default", "foo"=>"http://foo.com/foo"}).should ==
         {"xmlns"=>"http://default.com/default", "xmlns:foo"=>"http://foo.com/foo"}
     end
   end
 
   describe "non_ns_attrs_ns_bindings" do
     it "should extract non-ns attributes and explicit namespace bindings" do
-      Namespace.non_ns_attrs_ns_bindings([{"foo"=>"http://foo.com/foo"}], 
-                                         [:bar, "foo", "http://foo.com/foo"], 
+      Namespace.non_ns_attrs_ns_bindings([{"foo"=>"http://foo.com/foo"}],
+                                         [:bar, "foo", "http://foo.com/foo"],
                                          { "xmlns:boo"=>"http://boo.com/boo",
                                            [:b, "bar", "http://bar.com/bar"]=>"barbar",
                                            [:c, "baz", "http://baz.com/baz"]=>"bazbaz",
@@ -258,20 +259,20 @@ module Rsxml
         [{[:b, "bar", "http://bar.com/bar"]=>"barbar",
            [:c, "baz", "http://baz.com/baz"]=>"bazbaz",
            [:d, "foo"]=>"booboo"},
-         { "baz"=>"http://baz.com/baz", 
+         { "baz"=>"http://baz.com/baz",
            "bar"=>"http://bar.com/bar",
            "boo"=>"http://boo.com/boo"}]
     end
 
     it "should extract explicit default namespace bindings" do
-      Namespace.non_ns_attrs_ns_bindings([{"foo"=>"http://foo.com/foo"}], 
-                                         [:bar, "", "http://default.com/default"], 
+      Namespace.non_ns_attrs_ns_bindings([{"foo"=>"http://foo.com/foo"}],
+                                         [:bar, "", "http://default.com/default"],
                                          { [:d, "foo"]=>"booboo"}).should ==
         [{ [:d, "foo"]=>"booboo"},
          { ""=>"http://default.com/default"}]
     end
 
-    
+
   end
 
 end

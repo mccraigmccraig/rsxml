@@ -1,4 +1,5 @@
 require File.expand_path(File.dirname(__FILE__) + '/spec_helper')
+require 'rsxml'
 
 describe Rsxml do
   describe "to_xml" do
@@ -7,7 +8,7 @@ describe Rsxml do
     end
 
     it "should produce a single-element doc with namespaces" do
-      Rsxml.to_xml([[:bar, :foo, "http://foo.com/foo"]]).should == 
+      Rsxml.to_xml([[:bar, :foo, "http://foo.com/foo"]]).should ==
         '<foo:bar xmlns:foo="http://foo.com/foo"></foo:bar>'
     end
 
@@ -30,7 +31,7 @@ describe Rsxml do
       r.name.should == "bar"
       r.namespace.href.should == "http://foo.com/foo"
       r.namespace.prefix.should == "foo"
-      
+
       r.attributes["bar"].namespace.should == nil
       r["bar"].should == "1"
 
@@ -39,11 +40,11 @@ describe Rsxml do
     end
 
     it "should produce a single-element doc with namespace and attr namespaces" do
-      xml = Rsxml.to_xml([[:bar, :foo, "http://foo.com/foo"], 
-                          {[:barbar, :bar, "http://bar.com/bar"]=>1, 
+      xml = Rsxml.to_xml([[:bar, :foo, "http://foo.com/foo"],
+                          {[:barbar, :bar, "http://bar.com/bar"]=>1,
                             :baz=>"baz"}])
       r = Nokogiri::XML(xml).children.first
-      
+
       r.name.should == "bar"
       r.namespace.prefix.should == "foo"
       r.namespace.href.should == "http://foo.com/foo"
@@ -59,11 +60,11 @@ describe Rsxml do
     end
 
     it "should produce a single-element doc with default namespace and attr namespaces" do
-      xml = Rsxml.to_xml([[:bar, "", "http://foo.com/foo"], 
-                          {[:barbar, :bar, "http://bar.com/bar"]=>1, 
+      xml = Rsxml.to_xml([[:bar, "", "http://foo.com/foo"],
+                          {[:barbar, :bar, "http://bar.com/bar"]=>1,
                             :baz=>"baz"}])
       r = Nokogiri::XML(xml).children.first
-      
+
       r.name.should == "bar"
       r.namespace.prefix.should == nil
       r.namespace.href.should == "http://foo.com/foo"
@@ -135,12 +136,12 @@ describe Rsxml do
 
   describe "to_rsxml" do
 
-    def test_roundtrip(org) 
+    def test_roundtrip(org)
       xml = Rsxml.to_xml(org)
       rsxml = Rsxml.to_rsxml(xml, :style=>:xml)
       rsxml.should == org
     end
-    
+
     it "should parse a single-element doc" do
       test_roundtrip(["foo"])
     end

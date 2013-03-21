@@ -1,16 +1,15 @@
+# encoding: utf-8
+
 require 'rubygems'
-require 'rake'
-
+require 'bundler'
 begin
-  require "yard"
-
-  YARD::Rake::YardocTask.new do |t|
-    t.files = ["README.md", "lib/**/*.rb"]
-  end
-rescue LoadError
-  desc message = %{"gem install yard" to generate documentation}
-  task("yard") { abort message }
+  Bundler.setup(:default, :development)
+rescue Bundler::BundlerError => e
+  $stderr.puts e.message
+  $stderr.puts "Run `bundle install` to install missing gems"
+  exit e.status_code
 end
+require 'rake'
 
 require 'jeweler'
 Jeweler::Tasks.new do |gem|
@@ -22,29 +21,29 @@ Jeweler::Tasks.new do |gem|
   gem.description = %Q{convert XML documents to an s-expression representation and back again in Ruby}
   gem.email = "craig@trampolinesystems.com"
   gem.authors = ["Trampoline Systems Ltd"]
-  # Include your dependencies below. Runtime dependencies are required when using your gem,
-  # and development dependencies are only needed for development (ie running rake tasks, tests, etc)
-  gem.add_runtime_dependency "nokogiri", ">= 1.4.4"
-  gem.add_development_dependency "rspec", "~> 1.3.1"
-  gem.add_development_dependency "rr", ">= 0.10.5"
-  gem.add_development_dependency "jeweler", ">= 1.5.2"
-  gem.add_development_dependency "rcov", ">= 0"
-  gem.add_development_dependency "yard", ">= 0.7.1"
+  # dependencies defined in Gemfile
 end
 Jeweler::RubygemsDotOrgTasks.new
 
-require 'spec/rake/spectask'
-Spec::Rake::SpecTask.new(:spec) do |spec|
-  spec.libs << 'lib' << 'spec'
-  spec.spec_files = FileList['spec/**/*_spec.rb']
+require 'rspec/core'
+require 'rspec/core/rake_task'
+RSpec::Core::RakeTask.new(:spec) do |spec|
+  spec.pattern = FileList['spec/**/*_spec.rb']
 end
 
-Spec::Rake::SpecTask.new(:rcov) do |spec|
-  spec.libs << 'lib' << 'spec'
-  spec.pattern = 'spec/**/*_spec.rb'
-  spec.rcov = true
-end
-
-task :spec => :check_dependencies
+# RSpec::Core::RakeTask.new(:rcov) do |spec|
+#   spec.pattern = 'spec/**/*_spec.rb'
+#   spec.rcov = true
+# end
 
 task :default => :spec
+
+require 'rdoc/task'
+Rake::RDocTask.new do |rdoc|
+  version = File.exist?('VERSION') ? File.read('VERSION') : ""
+
+  rdoc.rdoc_dir = 'rdoc'
+  rdoc.title = "mdquery #{version}"
+  rdoc.rdoc_files.include('README*')
+  rdoc.rdoc_files.include('lib/**/*.rb')
+end

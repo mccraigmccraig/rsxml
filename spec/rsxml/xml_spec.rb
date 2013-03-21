@@ -1,4 +1,5 @@
 require File.expand_path("../../spec_helper", __FILE__)
+require 'rsxml/xml'
 
 module Rsxml
   describe "wrap_fragment" do
@@ -64,7 +65,7 @@ module Rsxml
 
       eelement, eattrs = Rsxml::Xml.explode_element(root)
       eelement.should == ["bar", "foo", "http://foo.com/foo"]
-      eattrs.should == {"a"=>"aa", 
+      eattrs.should == {"a"=>"aa",
         ["b", "foo", "http://foo.com/foo"]=>"bb"}
     end
   end

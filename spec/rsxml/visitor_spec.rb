@@ -1,4 +1,6 @@
 require File.expand_path("../../spec_helper", __FILE__)
+require 'rsxml/visitor'
+require 'rsxml/mock_visitor'
 
 module Rsxml
   # tests traverse methods on both Xml and Sexp together : they should produce identical visitation
@@ -9,7 +11,7 @@ module Rsxml
       xml_root = Nokogiri::XML(xml).children.first
       Xml.traverse(xml_root, xml_visitor)
       xml_visitor.__finalize__
-      
+
       sexp_visitor = Visitor::MockVisitor.new(expectations)
       Sexp.traverse(sexp, sexp_visitor)
       sexp_visitor.__finalize__
@@ -22,18 +24,18 @@ module Rsxml
     end
 
     it "should call the element function on the visitor with exploded element and attributes qnames" do
-      check_traverse([[:element, :_, 
-                       ["foofoo", "foo", "http://foo.com/foo"], 
-                       {["bar", "foo", "http://foo.com/foo"]=>"barbar"}, 
+      check_traverse([[:element, :_,
+                       ["foofoo", "foo", "http://foo.com/foo"],
+                       {["bar", "foo", "http://foo.com/foo"]=>"barbar"},
                        {"foo"=>"http://foo.com/foo"}]],
                      '<foo:foofoo foo:bar="barbar" xmlns:foo="http://foo.com/foo"/>',
                      [["foofoo", "foo"], {["bar", "foo", "http://foo.com/foo"]=>"barbar"}])
     end
 
     it "should call the test function on the visitor with textual content" do
-      check_traverse([[:element, :_, 
-                       ["foofoo", "foo", "http://foo.com/foo"], 
-                       {["bar", "foo", "http://foo.com/foo"]=>"barbar"}, 
+      check_traverse([[:element, :_,
+                       ["foofoo", "foo", "http://foo.com/foo"],
+                       {["bar", "foo", "http://foo.com/foo"]=>"barbar"},
                        {"foo"=>"http://foo.com/foo"}],
                       [:text, :_, "boohoo"]],
                      '<foo:foofoo foo:bar="barbar" xmlns:foo="http://foo.com/foo">boohoo</foo:foofoo>',
@@ -41,9 +43,9 @@ module Rsxml
     end
 
     it "should call the element function in document order for each element in a hierarchic doc" do
-      check_traverse([[:element, :_, 
-                       ["foofoo", "foo", "http://foo.com/foo"], 
-                       {["bar", "foo", "http://foo.com/foo"]=>"barbar"}, 
+      check_traverse([[:element, :_,
+                       ["foofoo", "foo", "http://foo.com/foo"],
+                       {["bar", "foo", "http://foo.com/foo"]=>"barbar"},
                        {"foo"=>"http://foo.com/foo"}],
                       [:element, :_,
                        ["barbar", "foo", "http://foo.com/foo"],
@@ -55,9 +57,9 @@ module Rsxml
     end
 
     it "should call the element/text functions in a mixed document in document order" do
-      check_traverse([[:element, :_, 
-                       ["foofoo", "foo", "http://foo.com/foo"], 
-                       {["bar", "foo", "http://foo.com/foo"]=>"barbar"}, 
+      check_traverse([[:element, :_,
+                       ["foofoo", "foo", "http://foo.com/foo"],
+                       {["bar", "foo", "http://foo.com/foo"]=>"barbar"},
                        {"foo"=>"http://foo.com/foo"}],
                       [:element, :_,
                        ["barbar", "foo", "http://foo.com/foo"],
@@ -76,9 +78,9 @@ module Rsxml
     end
 
     it "should work the same with compact sexp representations" do
-      check_traverse([[:element, :_, 
-                       ["foofoo", "foo", "http://foo.com/foo"], 
-                       {["bar", "foo", "http://foo.com/foo"]=>"barbar"}, 
+      check_traverse([[:element, :_,
+                       ["foofoo", "foo", "http://foo.com/foo"],
+                       {["bar", "foo", "http://foo.com/foo"]=>"barbar"},
                        {"foo"=>"http://foo.com/foo"}],
                       [:element, :_,
                        ["barbar", "foo", "http://foo.com/foo"],
@@ -181,7 +183,7 @@ module Rsxml
                                       cattrs = Hash[attrs.map{|n,v| [capitalize_local_part(n), v]}]
                                       [celement_name, cattrs]
                                     end ).sexp
-                                        
+
         rsxml.should ==
           ["Foo", {"Bar"=>"10", "Baz"=>"20"}]
 
@@ -191,7 +193,7 @@ module Rsxml
                                       cattrs = Hash[attrs.map{|n,v| [capitalize_local_part(n), v]}]
                                       [celement_name, cattrs]
                                     end ).sexp
-                                        
+
         rsxml.should ==
           [["Foo", "a", "http://a.com/a"], {"Bar"=>"10", "Baz"=>"20"}]
 
