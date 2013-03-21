@@ -15,7 +15,7 @@ require 'jeweler'
 Jeweler::Tasks.new do |gem|
   # gem is a Gem::Specification... see http://docs.rubygems.org/read/chapter/20 for more options
   gem.name = "rsxml"
-  gem.homepage = "http://github.com/trampoline/rsxml"
+  gem.homepage = "http://github.com/mccraigmccraig/rsxml"
   gem.license = "MIT"
   gem.summary = %Q{an s-expression representation of XML documents in Ruby}
   gem.description = %Q{convert XML documents to an s-expression representation and back again in Ruby}

@@ -4,23 +4,26 @@
 # -*- encoding: utf-8 -*-
 
 Gem::Specification.new do |s|
-  s.name = %q{rsxml}
-  s.version = "0.3.0"
+  s.name = "rsxml"
+  s.version = "0.4.0"
 
   s.required_rubygems_version = Gem::Requirement.new(">= 0") if s.respond_to? :required_rubygems_version=
   s.authors = ["Trampoline Systems Ltd"]
-  s.date = %q{2011-05-27}
-  s.description = %q{convert XML documents to an s-expression representation and back again in Ruby}
-  s.email = %q{craig@trampolinesystems.com}
+  s.date = "2013-03-21"
+  s.description = "convert XML documents to an s-expression representation and back again in Ruby"
+  s.email = "craig@trampolinesystems.com"
   s.extra_rdoc_files = [
     "LICENSE.txt",
-    "README.rdoc"
+    "README.md"
   ]
   s.files = [
     ".document",
     ".rspec",
+    ".travis.yml",
+    "Gemfile",
+    "Gemfile.lock",
     "LICENSE.txt",
-    "README.rdoc",
+    "README.md",
     "Rakefile",
     "VERSION",
     "lib/rsxml.rb",
@@ -29,6 +32,7 @@ Gem::Specification.new do |s|
     "lib/rsxml/util.rb",
     "lib/rsxml/visitor.rb",
     "lib/rsxml/xml.rb",
+    "rsxml.gemspec",
     "spec/rsxml/mock_visitor.rb",
     "spec/rsxml/namespace_spec.rb",
     "spec/rsxml/sexp_spec.rb",
@@ -38,44 +42,43 @@ Gem::Specification.new do |s|
     "spec/rsxml_spec.rb",
     "spec/spec_helper.rb"
   ]
-  s.homepage = %q{http://github.com/trampoline/rsxml}
+  s.homepage = "http://github.com/mccraigmccraig/rsxml"
   s.licenses = ["MIT"]
   s.require_paths = ["lib"]
-  s.rubygems_version = %q{1.6.2}
-  s.summary = %q{an s-expression representation of XML documents in Ruby}
-  s.test_files = [
-    "spec/rsxml/mock_visitor.rb",
-    "spec/rsxml/namespace_spec.rb",
-    "spec/rsxml/sexp_spec.rb",
-    "spec/rsxml/util_spec.rb",
-    "spec/rsxml/visitor_spec.rb",
-    "spec/rsxml/xml_spec.rb",
-    "spec/rsxml_spec.rb",
-    "spec/spec_helper.rb"
-  ]
+  s.rubygems_version = "1.8.23"
+  s.summary = "an s-expression representation of XML documents in Ruby"
 
   if s.respond_to? :specification_version then
     s.specification_version = 3
 
     if Gem::Version.new(Gem::VERSION) >= Gem::Version.new('1.2.0') then
-      s.add_runtime_dependency(%q<nokogiri>, [">= 1.4.4"])
-      s.add_development_dependency(%q<rspec>, ["~> 1.3.1"])
-      s.add_development_dependency(%q<rr>, [">= 0.10.5"])
-      s.add_development_dependency(%q<jeweler>, ["~> 1.5.2"])
-      s.add_development_dependency(%q<rcov>, [">= 0"])
+      s.add_runtime_dependency(%q<nokogiri>, ["~> 1.5.8"])
+      s.add_runtime_dependency(%q<builder>, ["~> 3.2.0"])
+      s.add_development_dependency(%q<rake>, ["~> 10.0.3"])
+      s.add_development_dependency(%q<rspec>, ["~> 2.13.0"])
+      s.add_development_dependency(%q<rdoc>, ["~> 4.0.0"])
+      s.add_development_dependency(%q<bundler>, ["~> 1.3.2"])
+      s.add_development_dependency(%q<jeweler>, ["~> 1.8.4"])
+      s.add_development_dependency(%q<rr>, [">= 1.0.4"])
     else
-      s.add_dependency(%q<nokogiri>, [">= 1.4.4"])
-      s.add_dependency(%q<rspec>, ["~> 1.3.1"])
-      s.add_dependency(%q<rr>, [">= 0.10.5"])
-      s.add_dependency(%q<jeweler>, ["~> 1.5.2"])
-      s.add_dependency(%q<rcov>, [">= 0"])
+      s.add_dependency(%q<nokogiri>, ["~> 1.5.8"])
+      s.add_dependency(%q<builder>, ["~> 3.2.0"])
+      s.add_dependency(%q<rake>, ["~> 10.0.3"])
+      s.add_dependency(%q<rspec>, ["~> 2.13.0"])
+      s.add_dependency(%q<rdoc>, ["~> 4.0.0"])
+      s.add_dependency(%q<bundler>, ["~> 1.3.2"])
+      s.add_dependency(%q<jeweler>, ["~> 1.8.4"])
+      s.add_dependency(%q<rr>, [">= 1.0.4"])
     end
   else
-    s.add_dependency(%q<nokogiri>, [">= 1.4.4"])
-    s.add_dependency(%q<rspec>, ["~> 1.3.1"])
-    s.add_dependency(%q<rr>, [">= 0.10.5"])
-    s.add_dependency(%q<jeweler>, ["~> 1.5.2"])
-    s.add_dependency(%q<rcov>, [">= 0"])
+    s.add_dependency(%q<nokogiri>, ["~> 1.5.8"])
+    s.add_dependency(%q<builder>, ["~> 3.2.0"])
+    s.add_dependency(%q<rake>, ["~> 10.0.3"])
+    s.add_dependency(%q<rspec>, ["~> 2.13.0"])
+    s.add_dependency(%q<rdoc>, ["~> 4.0.0"])
+    s.add_dependency(%q<bundler>, ["~> 1.3.2"])
+    s.add_dependency(%q<jeweler>, ["~> 1.8.4"])
+    s.add_dependency(%q<rr>, [">= 1.0.4"])
   end
 end
 
